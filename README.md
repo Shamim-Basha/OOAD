@@ -148,6 +148,39 @@ The compiled `.jar` file will be in the `Backend/target/` directory.
 
 ---
 
+## 🌿 Working with Git Branches
+
+To work on a new feature or fix, follow these steps:
+
+### 1️⃣ Create a New Branch
+
+```bash
+git checkout -b your-branch-name
+```
+
+> Replace `your-branch-name` with a descriptive name like `feature/login-page` or `bugfix/api-error`.
+
+### 2️⃣ Make Changes and Commit
+
+```bash
+git add .
+git commit -m "Your descriptive commit message"
+```
+
+### 3️⃣ Push the Branch to Remote
+
+```bash
+git push origin your-branch-name
+```
+
+### 4️⃣ Create a Pull Request
+
+Go to your Git repository on GitHub/GitLab and create a **Pull Request (PR)** from your new branch to the `main` or `develop` branch.
+
+---
+
+
+
 ## 📬 Contact
 
 Have questions or issues? Open an issue on the repository.
