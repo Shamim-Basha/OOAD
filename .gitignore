@@ -1,60 +1,45 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# ============== General Ignore Rules ==============
+.DS_Store
+*.log
+*.swp
+*.bak
+*.tmp
+*.idea
+.vscode/
+*.iml
+*.ipr
+*.iws
 
-# dependencies
-Frontend/node_modules
+# ============== Frontend (React/Vue/Angular) ==============
+Frontend/node_modules/
 Frontend/.pnp
 Frontend/.pnp.js
-
-# testing
-Frontend/coverage
-
-# production
-Frontend/build
-
-# misc
-Frontend/.DS_Store
-Frontend/.env.local
-Frontend/.env.development.local
-Frontend/.env.test.local
-Frontend/.env.production.local
-
+Frontend/coverage/
+Frontend/build/
+Frontend/dist/
+Frontend/.env*
 Frontend/npm-debug.log*
 Frontend/yarn-debug.log*
 Frontend/yarn-error.log*
+Frontend/.cache/
+Frontend/.next/  # Next.js
+Frontend/.svelte-kit/  # Svelte
 
-
-
-#=========================================================
-HELP.md
+# ============== Backend (Spring Boot/Java) ==============
 Backend/target/
 Backend/.mvn/wrapper/maven-wrapper.jar
-Backend/!**/src/main/**/target/
-Backend/!**/src/test/**/target/
-
-### STS ###
-Backend/.apt_generated
+Backend/*.jar
+Backend/*.war
+Backend/.gradle/
+Backend/build/
+Backend/bin/
+Backend/.settings/
 Backend/.classpath
-Backend/.factorypath
 Backend/.project
-Backend/.settings
+Backend/.factorypath
 Backend/.springBeans
-Backend/.sts4-cache
-
-### IntelliJ IDEA ###
-Backend/.idea
-Backend/*.iws
-Backend/*.iml
-Backend/*.ipr
-
-### NetBeans ###
+Backend/.sts4-cache/
+Backend/.nb-gradle/
 Backend/nbproject/private/
 Backend/nbbuild/
-Backend/dist/
 Backend/nbdist/
-Backend/.nb-gradle/
-Backend/build/
-Backend/!**/src/main/**/build/
-Backend/!**/src/test/**/build/
-
-### VS Code ###
-Backend/.vscode/
