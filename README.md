@@ -177,7 +177,6 @@ Go to your Git repository on GitHub/GitLab and create a **Pull Request (PR)** fr
 ---
 
 
-
 ## 📬 Contact
 
 Have questions or issues? Open an issue on the repository.
