@@ -31,13 +31,12 @@ project-root/
 Make sure you have the following installed:
 
 ### Backend (Spring Boot)
-- Java 17+
-- Maven 3.8+
+- Java 24 (17+)
 - (Optional) IDE: IntelliJ IDEA / Eclipse
 
 ### Frontend (React.js)
-- Node.js (v18+)
-- npm (v9+) or yarn
+- Node.js
+- npm or yarn
 
 ---
 
@@ -62,11 +61,9 @@ mvn clean install
 ```
 
 ### ▶️ Run the Backend
-
-```bash
-mvn spring-boot:run
 ```
-
+./mvnw spring-boot:run
+```
 - The backend will run at: `http://localhost:8080`
 
 ---
@@ -108,7 +105,7 @@ yarn start
 
 ```bash
 cd Backend
-mvn test
+./mvnw spring-boot:test
 ```
 
 ### Frontend
@@ -141,7 +138,7 @@ The optimized production build will be in the `Frontend/build/` folder.
 
 ```bash
 cd Backend
-mvn package
+./mvnw package
 ```
 
 The compiled `.jar` file will be in the `Backend/target/` directory.
