@@ -42,8 +42,8 @@ const Navbar = () => {
             Products
           </Link>
           <Link 
-            to="/services" 
-            className={`navbar-link ${isActive('/services') ? 'active' : ''}`}
+            to="/rentals" 
+            className={`navbar-link ${isActive('/rentals') ? 'active' : ''}`}
             onClick={() => setIsMenuOpen(false)}
           >
             Rental Services

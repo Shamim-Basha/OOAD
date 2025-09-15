@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FaTools, FaHammer, FaWrench, FaPaintBrush, FaTruck, FaShieldAlt, FaStar, FaArrowRight } from 'react-icons/fa';
+import { FaTools, FaTruck, FaShieldAlt, FaStar, FaArrowRight } from 'react-icons/fa';
 import './Home.css';
 
 const Home = () => {
@@ -107,7 +107,7 @@ const Home = () => {
             <Link to="/products" className="btn btn-primary">
               Shop Products
             </Link>
-            <Link to="/services" className="btn btn-outline">
+            <Link to="/rentals" className="btn btn-outline">
               View Rentals
             </Link>
           </div>
@@ -177,7 +177,7 @@ const Home = () => {
                   <h3 className="card-title">{service.name}</h3>
                   <p className="card-text">{service.description}</p>
                   <div className="card-price">{service.price}</div>
-                  <Link to={`/service/${service.id}`} className="btn btn-primary">
+                  <Link to={`/rental/${service.id}`} className="btn btn-primary">
                     Rent Now
                   </Link>
                 </div>
@@ -186,7 +186,7 @@ const Home = () => {
           </div>
           
           <div className="text-center" style={{ marginTop: '40px' }}>
-            <Link to="/services" className="btn btn-outline">
+            <Link to="/rentals" className="btn btn-outline">
               View All Services <FaArrowRight />
             </Link>
           </div>
