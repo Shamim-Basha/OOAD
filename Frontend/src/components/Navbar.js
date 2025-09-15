@@ -1,15 +1,46 @@
-import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { FaShoppingCart, FaSearch, FaBars, FaTimes, FaTools, FaHammer } from 'react-icons/fa';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { FaShoppingCart, FaSearch, FaBars, FaTimes, FaTools, FaUser, FaUserCircle, FaSignOutAlt } from 'react-icons/fa';
 import './Navbar.css';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState(null);
+  const [showDropdown, setShowDropdown] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const userData = localStorage.getItem('user');
+    
+    if (token && userData) {
+      setIsLoggedIn(true);
+      setUser(JSON.parse(userData));
+    } else {
+      setIsLoggedIn(false);
+      setUser(null);
+    }
+  }, [location]); // Re-check on route change
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
+  };
+
+  const toggleDropdown = () => {
+    setShowDropdown(!showDropdown);
+  };
+
+  const handleLogout = () => {
+    // Clear authentication data
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setIsLoggedIn(false);
+    setUser(null);
+    setShowDropdown(false);
+    navigate('/');
   };
 
   const isActive = (path) => {
@@ -72,6 +103,67 @@ const Navbar = () => {
             {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
           </Link>
 
+          {/* User Authentication Section */}
+          <div className="user-section">
+            {isLoggedIn ? (
+              <div className="user-dropdown">
+                <button 
+                  className="user-profile-btn"
+                  onClick={toggleDropdown}
+                  aria-label="User profile"
+                >
+                  <FaUserCircle className="user-icon" />
+                  <span className="user-name">{user?.firstName || 'User'}</span>
+                </button>
+                
+                {showDropdown && (
+                  <div className="dropdown-menu">
+                    <Link 
+                      to="/profile" 
+                      className="dropdown-item"
+                      onClick={() => {
+                        setShowDropdown(false);
+                        setIsMenuOpen(false);
+                      }}
+                    >
+                      <FaUser className="dropdown-icon" />
+                      My Profile
+                    </Link>
+                    <Link 
+                      to="/orders" 
+                      className="dropdown-item"
+                      onClick={() => {
+                        setShowDropdown(false);
+                        setIsMenuOpen(false);
+                      }}
+                    >
+                      <FaShoppingCart className="dropdown-icon" />
+                      My Orders
+                    </Link>
+                    <button 
+                      className="dropdown-item logout-btn"
+                      onClick={handleLogout}
+                    >
+                      <FaSignOutAlt className="dropdown-icon" />
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="auth-buttons">
+                <Link 
+                  to="/login" 
+                  className="login-btn"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <FaUser className="auth-icon" />
+                  Login
+                </Link>
+              </div>
+            )}
+          </div>
+
           <button className="mobile-menu-btn" onClick={toggleMenu}>
             {isMenuOpen ? <FaTimes /> : <FaBars />}
           </button>
@@ -81,4 +173,4 @@ const Navbar = () => {
   );
 };
 
-export default Navbar; 
+export default Navbar;

@@ -134,6 +134,135 @@
   padding: 5px;
 }
 
+/* Add these styles to your Navbar.css */
+
+.user-section {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.auth-buttons {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.login-btn, .register-btn {
+  padding: 8px 16px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.login-btn {
+  background-color: transparent;
+  color: #333;
+  border: 1px solid #ddd;
+}
+
+.login-btn:hover {
+  background-color: #f5f5f5;
+  border-color: #ccc;
+}
+
+.register-btn {
+  background-color: #007bff;
+  color: white;
+  border: 1px solid #007bff;
+}
+
+.register-btn:hover {
+  background-color: #0056b3;
+  border-color: #0056b3;
+}
+
+.auth-icon {
+  font-size: 14px;
+}
+
+.user-dropdown {
+  position: relative;
+}
+
+.user-profile-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.user-profile-btn:hover {
+  background-color: #f5f5f5;
+  border-color: #ccc;
+}
+
+.user-icon {
+  font-size: 18px;
+  color: #666;
+}
+
+.user-name {
+  font-weight: 500;
+  color: #333;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  min-width: 180px;
+  z-index: 1000;
+  margin-top: 8px;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  text-decoration: none;
+  color: #333;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.dropdown-item:hover {
+  background-color: #f8f9fa;
+}
+
+.dropdown-icon {
+  font-size: 14px;
+  color: #666;
+}
+
+.logout-btn {
+  color: #dc3545;
+  border-top: 1px solid #eee;
+}
+
+.logout-btn:hover {
+  background-color: #fff5f5;
+  color: #c82333;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .navbar-menu {
@@ -174,6 +303,33 @@
 
   .navbar-actions {
     gap: 15px;
+  }
+
+    .auth-buttons {
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .login-btn, .register-btn {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .user-dropdown {
+    width: 100%;
+  }
+
+  .user-profile-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .dropdown-menu {
+    right: 50%;
+    transform: translateX(50%);
+    min-width: 200px;
   }
 }
 
