@@ -25,9 +25,6 @@ public class SecurityConfig {
 
     private final UserRepository userRepository;
 
-    // Remove JwtAuthenticationFilter dependency from constructor
-    // and create it as a separate bean
-
     @Bean
     public UserDetailsService userDetailsService() {
         return username -> userRepository.findByUsername(username)
