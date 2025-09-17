@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaUser, FaLock, FaEye, FaEyeSlash, FaTools } from 'react-icons/fa';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import './Auth.css';
 
 const Login = () => {
@@ -10,7 +12,6 @@ const Login = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -18,16 +19,16 @@ const Login = () => {
       ...formData,
       [e.target.name]: e.target.value
     });
-    setError('');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    setError('');
+
+    // Show loading toast
+    const toastId = toast.loading('🔐 Signing in...');
 
     try {
-      // Replace with your actual API endpoint
       const response = await fetch('http://localhost:8080/api/auth/login', {
         method: 'POST',
         headers: {
@@ -39,18 +40,40 @@ const Login = () => {
       const data = await response.json();
 
       if (response.ok) {
+        toast.update(toastId, {
+          render: '✅ Login successful!',
+          type: 'success',
+          isLoading: false,
+          autoClose: 2000,
+          closeOnClick: true,
+        });
+
         // Store token and user data
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data));
-        
-        // Redirect to home or dashboard
-        navigate('/');
-        window.location.reload(); // Refresh to update auth state
+
+        // Redirect after short delay
+        setTimeout(() => {
+          navigate('/');
+          window.location.reload();
+        }, 2000);
       } else {
-        setError(data.message || 'Login failed');
+        toast.update(toastId, {
+          render: data.message || '❌ Invalid username or password',
+          type: 'error',
+          isLoading: false,
+          autoClose: 3000,
+          closeOnClick: true,
+        });
       }
     } catch (error) {
-      setError('Network error. Please try again.');
+      toast.update(toastId, {
+        render: '🌐 Network error. Please try again.',
+        type: 'error',
+        isLoading: false,
+        autoClose: 3000,
+        closeOnClick: true,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -64,8 +87,6 @@ const Login = () => {
           <h2>Welcome Back</h2>
           <p>Sign in to your Lanka Hardware account</p>
         </div>
-
-        {error && <div className="error-message">{error}</div>}
 
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
@@ -135,6 +156,17 @@ const Login = () => {
           </p>
         </div>
       </div>
+
+      {/* Toast container */}
+      <ToastContainer 
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        pauseOnHover
+        draggable
+      />
     </div>
   );
 };
