@@ -23,11 +23,11 @@ public class AuthenticationService {
     public AuthenticationResponse register(RegisterRequest request) {
         // Check if user already exists
         if (userRepository.existsByUsername(request.getUsername())) {
-            return new AuthenticationResponse("Username already exists");
+            throw new RuntimeException("UserName already exists");
         }
 
         if (userRepository.existsByEmail(request.getEmail())) {
-            return new AuthenticationResponse("Email already exists");
+            throw new RuntimeException("Email already exists");
         }
 
         // Create new user
