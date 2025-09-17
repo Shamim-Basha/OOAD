@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaUser, FaEnvelope, FaLock, FaEye, FaEyeSlash, FaPhone, FaMapMarker, FaTools } from 'react-icons/fa';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import './Auth.css';
 
 const Register = () => {
@@ -19,7 +21,6 @@ const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -27,53 +28,73 @@ const Register = () => {
       ...formData,
       [e.target.name]: e.target.value
     });
-    setError('');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Basic validation
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
+      toast.error('❌ Passwords do not match');
       return;
     }
 
     if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters long');
+      toast.warning('⚠️ Password must be at least 6 characters long');
       return;
     }
 
     setIsLoading(true);
-    setError('');
+
+    // Loading toast
+    const toastId = toast.loading('⏳ Creating account...');
 
     try {
-      // Remove confirmPassword before sending to API
       const { confirmPassword, ...submitData } = formData;
 
       const response = await fetch('http://localhost:8080/api/auth/register', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(submitData),
       });
 
       const data = await response.json();
 
-      if (response.ok){
+      if (response.ok) {
+        toast.update(toastId, {
+          render: '🎉 Account created successfully!',
+          type: 'success',
+          isLoading: false,
+          autoClose: 2000,
+          closeOnClick: true,
+        });
+
         // Store token and user data
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data));
-        
-        // Redirect to home
-        navigate('/');
-        window.location.reload(); // Refresh to update auth state
+
+        // Redirect after a short delay
+        setTimeout(() => {
+          navigate('/');
+          window.location.reload();
+        }, 2000);
       } else {
-        setError(data.message || 'Registration failed');
+        toast.update(toastId, {
+          render: data.message || '❌ Registration failed',
+          type: 'error',
+          isLoading: false,
+          autoClose: 3000,
+          closeOnClick: true,
+        });
       }
     } catch (error) {
-      setError('Network error. Please try again.');
+      toast.update(toastId, {
+        render: '🌐 Network error. Please try again.',
+        type: 'error',
+        isLoading: false,
+        autoClose: 3000,
+        closeOnClick: true,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -87,8 +108,6 @@ const Register = () => {
           <h2>Create Account</h2>
           <p>Join Lanka Hardware today</p>
         </div>
-
-        {error && <div className="error-message">{error}</div>}
 
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-row">
@@ -254,14 +273,14 @@ const Register = () => {
             <div className="form-group">
               <label htmlFor="postalCode">Postal Code</label>
               <div className="input-group">
-              <input
-                type="text"
-                id="postalCode"
-                name="postalCode"
-                value={formData.postalCode}
-                onChange={handleChange}
-                placeholder="Postal code"
-              />
+                <input
+                  type="text"
+                  id="postalCode"
+                  name="postalCode"
+                  value={formData.postalCode}
+                  onChange={handleChange}
+                  placeholder="Postal code"
+                />
               </div>
             </div>
           </div>
@@ -284,6 +303,17 @@ const Register = () => {
           </p>
         </div>
       </div>
+
+      {/* Toast container */}
+      <ToastContainer 
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        pauseOnHover
+        draggable
+      />
     </div>
   );
 };
