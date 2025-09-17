@@ -21,34 +21,38 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
 
     public AuthenticationResponse register(RegisterRequest request) {
-        // Check if user already exists
-        if (userRepository.existsByUsername(request.getUsername())) {
-            throw new RuntimeException("UserName already exists");
+        try {
+            // Check if user already exists
+            if (userRepository.existsByUsername(request.getUsername())) {
+                throw new RuntimeException("UserName already exists");
+            }
+
+            if (userRepository.existsByEmail(request.getEmail())) {
+                throw new RuntimeException("Email already exists");
+            }
+
+            // Create new user
+            var user = User.builder()
+                    .username(request.getUsername())
+                    .email(request.getEmail())
+                    .password(passwordEncoder.encode(request.getPassword()))
+                    .firstName(request.getFirstName())
+                    .lastName(request.getLastName())
+                    .phone(request.getPhone())
+                    .address(request.getAddress())
+                    .city(request.getCity())
+                    .postalCode(request.getPostalCode())
+                    .role(request.getRole() != null ? request.getRole() : User.UserRole.CUSTOMER)
+                    .enabled(true)
+                    .build();
+
+            userRepository.save(user);
+
+            var jwtToken = jwtService.generateToken(user);
+            return new AuthenticationResponse(jwtToken, user, "User registered successfully");
+        }catch (Exception e){
+            return new AuthenticationResponse(e.getMessage());
         }
-
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already exists");
-        }
-
-        // Create new user
-        var user = User.builder()
-                .username(request.getUsername())
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .firstName(request.getFirstName())
-                .lastName(request.getLastName())
-                .phone(request.getPhone())
-                .address(request.getAddress())
-                .city(request.getCity())
-                .postalCode(request.getPostalCode())
-                .role(request.getRole() != null ? request.getRole() : User.UserRole.CUSTOMER)
-                .enabled(true)
-                .build();
-
-        userRepository.save(user);
-
-        var jwtToken = jwtService.generateToken(user);
-        return new AuthenticationResponse(jwtToken, user, "User registered successfully");
     }
 
     public AuthenticationResponse authenticate(AuthenticationRequest request) {

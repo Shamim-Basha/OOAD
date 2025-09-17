@@ -21,7 +21,12 @@ public class AuthenticationController {
     public ResponseEntity<AuthenticationResponse> register(
             @RequestBody RegisterRequest request
     ) {
-        return ResponseEntity.ok(authenticationService.register(request));
+        AuthenticationResponse authenticationResponse = authenticationService.register(request);
+        if (authenticationResponse.getMessage().equals("User registered successfully")){
+            return ResponseEntity.ok(authenticationResponse);
+        }else{
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(authenticationResponse);
+        }
     }
 
     @PostMapping("/login")
@@ -32,7 +37,7 @@ public class AuthenticationController {
         if (authenticationResponse.getMessage().equals("Login successful")){
             return ResponseEntity.ok(authenticationResponse);
         }else{
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(authenticationResponse);
         }
     }
 }
