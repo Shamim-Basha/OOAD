@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { FaShoppingCart, FaSearch, FaBars, FaTimes, FaTools, FaUser, FaUserCircle, FaSignOutAlt } from 'react-icons/fa';
+import { ToastContainer ,toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import './Navbar.css';
 
 const Navbar = () => {
@@ -34,14 +36,22 @@ const Navbar = () => {
   };
   
   const handleLogout = () => {
+    const toastId = toast.loading('🔐 Signing out...');
+
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setIsLoggedIn(false);
     setUser(null);
     setShowDropdown(false);
 
+    toast.update(toastId, {
+              render: '✅ Signed out successfully!',
+              type: 'success',
+              isLoading: false,
+              autoClose: 2000,
+              closeOnClick: true,
+    });
     navigate('/');
-    toast.success('You have logged out successfully!');
   };
 
 
@@ -50,6 +60,7 @@ const Navbar = () => {
   };
 
   return (
+    <div>
     <nav className="navbar">
       <div className="container">
         <div className="navbar-brand">
@@ -172,6 +183,17 @@ const Navbar = () => {
         </div>
       </div>
     </nav>
+    {/* Toast container */}
+      <ToastContainer 
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        pauseOnHover
+        draggable
+      />
+      </div>
   );
 };
 
