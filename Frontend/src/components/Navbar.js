@@ -32,16 +32,18 @@ const Navbar = () => {
   const toggleDropdown = () => {
     setShowDropdown(!showDropdown);
   };
-
+  
   const handleLogout = () => {
-    // Clear authentication data
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setIsLoggedIn(false);
     setUser(null);
     setShowDropdown(false);
+
     navigate('/');
+    toast.success('You have logged out successfully!');
   };
+
 
   const isActive = (path) => {
     return location.pathname === path;
