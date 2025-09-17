@@ -61,7 +61,7 @@ const Register = () => {
 
       const data = await response.json();
 
-      if (response.ok) {
+      if (response.ok){
         // Store token and user data
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data));

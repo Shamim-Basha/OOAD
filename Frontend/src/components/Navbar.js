@@ -23,7 +23,7 @@ const Navbar = () => {
       setIsLoggedIn(false);
       setUser(null);
     }
-  }, [location]); // Re-check on route change
+  }, [location]);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -113,7 +113,7 @@ const Navbar = () => {
                   aria-label="User profile"
                 >
                   <FaUserCircle className="user-icon" />
-                  <span className="user-name">{user?.firstName || 'User'}</span>
+                  <span className="user-name">{user?.username || 'User'}</span>
                 </button>
                 
                 {showDropdown && (
