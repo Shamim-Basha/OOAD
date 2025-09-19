@@ -5,6 +5,7 @@ import com.SRVK.Hardware.dto.AuthenticationResponse;
 import com.SRVK.Hardware.dto.RegisterRequest;
 import com.SRVK.Hardware.service.AuthenticationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,13 +21,23 @@ public class AuthenticationController {
     public ResponseEntity<AuthenticationResponse> register(
             @RequestBody RegisterRequest request
     ) {
-        return ResponseEntity.ok(authenticationService.register(request));
+        AuthenticationResponse authenticationResponse = authenticationService.register(request);
+        if (authenticationResponse.getMessage().equals("User registered successfully")){
+            return ResponseEntity.ok(authenticationResponse);
+        }else{
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(authenticationResponse);
+        }
     }
 
     @PostMapping("/login")
     public ResponseEntity<AuthenticationResponse> authenticate(
             @RequestBody AuthenticationRequest request
     ) {
-        return ResponseEntity.ok(authenticationService.authenticate(request));
+        AuthenticationResponse authenticationResponse = authenticationService.authenticate(request);
+        if (authenticationResponse.getMessage().equals("Login successful")){
+            return ResponseEntity.ok(authenticationResponse);
+        }else{
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(authenticationResponse);
+        }
     }
 }
