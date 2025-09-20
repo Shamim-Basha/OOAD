@@ -34,6 +34,10 @@ public class Rental {
     private LocalDate endDate;
 
     @Column(nullable = false)
+    @Builder.Default
+    private Integer quantity = 1;
+
+    @Column(nullable = false)
     private BigDecimal totalCost;
 }
 

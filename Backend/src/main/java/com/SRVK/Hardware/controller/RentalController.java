@@ -1,14 +1,15 @@
 package com.SRVK.Hardware.controller;
 
+import com.SRVK.Hardware.dto.CreateRentalRequest;
+import com.SRVK.Hardware.dto.UpdateRentalRequest;
 import com.SRVK.Hardware.entity.Rental;
 import com.SRVK.Hardware.service.RentalService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/rentals")
@@ -19,12 +20,15 @@ public class RentalController {
     private final RentalService rentalService;
 
     @PostMapping
-    public ResponseEntity<Rental> create(@RequestBody Map<String, String> body) {
-        Long userId = Long.valueOf(body.get("userId"));
-        Long toolId = Long.valueOf(body.get("toolId"));
-        LocalDate startDate = LocalDate.parse(body.get("startDate"));
-        LocalDate endDate = LocalDate.parse(body.get("endDate"));
-        return ResponseEntity.ok(rentalService.createRental(userId, toolId, startDate, endDate));
+    public ResponseEntity<Rental> create(@Valid @RequestBody CreateRentalRequest request) {
+        Rental rental = rentalService.createRental(
+                request.getUserId(),
+                request.getToolId(),
+                request.getStartDate(),
+                request.getEndDate(),
+                request.getQuantity()
+        );
+        return ResponseEntity.ok(rental);
     }
 
     @GetMapping
@@ -33,10 +37,9 @@ public class RentalController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Rental> update(@PathVariable Long id, @RequestBody Map<String, String> body) {
-        LocalDate startDate = LocalDate.parse(body.get("startDate"));
-        LocalDate endDate = LocalDate.parse(body.get("endDate"));
-        return ResponseEntity.ok(rentalService.updateDates(id, startDate, endDate));
+    public ResponseEntity<Rental> update(@PathVariable Long id, @Valid @RequestBody UpdateRentalRequest request) {
+        Rental rental = rentalService.updateDates(id, request.getStartDate(), request.getEndDate());
+        return ResponseEntity.ok(rental);
     }
 
     @DeleteMapping("/{id}")

@@ -32,10 +32,24 @@ public class Tool {
     @Column(nullable = false)
     private boolean available;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private Integer stockQuantity = 1;
+
     @Column(length = 2000)
     private String description;
 
     private String imageUrl;
+
+    // Helper method to check if tool has available stock
+    public boolean hasAvailableStock() {
+        return available && stockQuantity > 0;
+    }
+
+    // Helper method to check if tool has enough stock for rental
+    public boolean hasEnoughStock(int requestedQuantity) {
+        return available && stockQuantity >= requestedQuantity;
+    }
 }
 
 

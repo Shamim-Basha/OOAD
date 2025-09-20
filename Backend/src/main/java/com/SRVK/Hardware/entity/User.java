@@ -53,9 +53,11 @@ public class User implements UserDetails {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)
+    @Builder.Default
     private UserRole role = UserRole.CUSTOMER;
 
     @Column(name = "enabled", nullable = false)
+    @Builder.Default
     private boolean enabled = true;
 
     public enum UserRole {
