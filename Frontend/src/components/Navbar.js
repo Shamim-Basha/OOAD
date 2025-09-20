@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { FaShoppingCart, FaSearch, FaBars, FaTimes, FaTools, FaUser, FaUserCircle, FaSignOutAlt } from 'react-icons/fa';
+import { ToastContainer ,toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import './Navbar.css';
 
 const Navbar = () => {
@@ -23,7 +25,7 @@ const Navbar = () => {
       setIsLoggedIn(false);
       setUser(null);
     }
-  }, [location]); // Re-check on route change
+  }, [location]);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -32,22 +34,33 @@ const Navbar = () => {
   const toggleDropdown = () => {
     setShowDropdown(!showDropdown);
   };
-
+  
   const handleLogout = () => {
-    // Clear authentication data
+    const toastId = toast.loading('🔐 Signing out...');
+
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setIsLoggedIn(false);
     setUser(null);
     setShowDropdown(false);
+
+    toast.update(toastId, {
+              render: '✅ Signed out successfully!',
+              type: 'success',
+              isLoading: false,
+              autoClose: 2000,
+              closeOnClick: true,
+    });
     navigate('/');
   };
+
 
   const isActive = (path) => {
     return location.pathname === path;
   };
 
   return (
+    <div>
     <nav className="navbar">
       <div className="container">
         <div className="navbar-brand">
@@ -113,7 +126,7 @@ const Navbar = () => {
                   aria-label="User profile"
                 >
                   <FaUserCircle className="user-icon" />
-                  <span className="user-name">{user?.firstName || 'User'}</span>
+                  <span className="user-name">{user?.username || 'User'}</span>
                 </button>
                 
                 {showDropdown && (
@@ -170,6 +183,17 @@ const Navbar = () => {
         </div>
       </div>
     </nav>
+    {/* Toast container */}
+      <ToastContainer 
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        pauseOnHover
+        draggable
+      />
+      </div>
   );
 };
 

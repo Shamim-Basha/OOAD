@@ -43,3 +43,4 @@ Backend/.nb-gradle/
 Backend/nbproject/private/
 Backend/nbbuild/
 Backend/nbdist/
+Backend/src/main/resources/application.properties
