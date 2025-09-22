@@ -56,12 +56,22 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public String update(@PathVariable Long id){
-        return "Updating user " + id;
+    public ResponseEntity<String> update(@PathVariable Long id, @RequestBody RegisterDTO dto){
+        try{
+            userService.update(id,dto);
+            return ResponseEntity.ok("Updated user with ID: " + id + " Successfully");
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(e.getMessage());
+        }
     }
 
     @DeleteMapping("/{id}")
-    public String delete(@PathVariable Long id){
-        return "Deleting User "+ id;
+    public ResponseEntity<String> delete(@PathVariable Long id){
+        try{
+            userService.delete(id);
+            return ResponseEntity.ok("User with Id : " + id + " has been deleted Successfully");
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(e.getMessage());
+        }
     }
 }
