@@ -13,20 +13,16 @@ const Products = () => {
   const [priceRange, setPriceRange] = useState([0, 100000]);
   const [sortBy, setSortBy] = useState('name');
 
-
+  // Fetch products from backend
   useEffect(() => {
-    axios.get('/api/products') 
-      .then(response => {
-        setProducts(response.data);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error('Error fetching products:', err);
-        setLoading(false);
-      });
+    setLoading(true);
+    axios.get('http://localhost:8080/api/products') // Update with your backend endpoint
+      .then(response => setProducts(response.data))
+      .catch(err => console.error('Error fetching products:', err))
+      .finally(() => setLoading(false));
   }, []);
 
-  
+  // Filter products whenever dependencies change
   useEffect(() => {
     filterProducts();
   }, [products, searchTerm, selectedCategory, priceRange, sortBy]);
@@ -43,7 +39,7 @@ const Products = () => {
       return matchesSearch && matchesCategory && matchesPrice;
     });
 
-
+    // Sort products
     filtered.sort((a, b) => {
       switch (sortBy) {
         case 'price-low': return a.price - b.price;
@@ -70,6 +66,7 @@ const Products = () => {
     console.log('Added to cart:', product);
   };
 
+  // Generate categories dynamically from products
   const categories = ['all', ...new Set(products.map(p => p.category))];
 
   if (loading) {
