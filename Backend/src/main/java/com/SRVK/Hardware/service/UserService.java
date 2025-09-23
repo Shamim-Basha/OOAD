@@ -2,6 +2,7 @@ package com.SRVK.Hardware.service;
 
 import com.SRVK.Hardware.dto.LoginDTO;
 import com.SRVK.Hardware.dto.RegisterDTO;
+import com.SRVK.Hardware.dto.ResponseDTO;
 import com.SRVK.Hardware.entity.User.UserRole;
 import com.SRVK.Hardware.entity.User;
 import com.SRVK.Hardware.repository.UserRepository;
@@ -31,6 +32,20 @@ public class UserService {
                 .build();
     }
 
+    public ResponseDTO toResponseDTO(User user) {
+        return ResponseDTO.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .phone(user.getPhone())
+                .address(user.getAddress())
+                .city(user.getCity())
+                .postalCode(user.getPostalCode())
+                .build();
+    }
+
     public void register(RegisterDTO registerDTO){
         if (userRepository.existsByUsername(registerDTO.getUsername())) { throw new RuntimeException("Username already exists");};
         if (userRepository.existsByEmail(registerDTO.getEmail())) { throw new RuntimeException("Email is already in use");};
@@ -40,20 +55,22 @@ public class UserService {
         userRepository.save(newUser);
     }
 
-    public void login(LoginDTO loginDTO){
+    public ResponseDTO login(LoginDTO loginDTO){
         User user = userRepository.findByUsername(loginDTO.getUsername())
                 .orElseThrow(() -> new RuntimeException("Username doesn't exists!"));
 
         if (!user.getPassword().equals(loginDTO.getPassword())){throw new RuntimeException("Invalid Password");}
+        return toResponseDTO(user);
     }
 
     public List<User> getUsers(){
         return userRepository.findAll();
     }
 
-    public User getUser(Long id){
+    public ResponseDTO getUser(Long id){
         try {
-            return userRepository.findById(id).orElseThrow(() -> new RuntimeException("User with ID: " + id + " Not Found!"));
+            User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User with ID: " + id + " Not Found!"));
+            return toResponseDTO(user);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

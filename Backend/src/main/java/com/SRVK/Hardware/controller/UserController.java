@@ -2,6 +2,7 @@ package com.SRVK.Hardware.controller;
 
 import com.SRVK.Hardware.dto.LoginDTO;
 import com.SRVK.Hardware.dto.RegisterDTO;
+import com.SRVK.Hardware.dto.ResponseDTO;
 import com.SRVK.Hardware.entity.User;
 import com.SRVK.Hardware.service.UserService;
 import lombok.AllArgsConstructor;
@@ -14,6 +15,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/users")
 @AllArgsConstructor
+@CrossOrigin("*")
 public class UserController {
 
     private final UserService userService;
@@ -30,13 +32,13 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody LoginDTO dto){
+    public ResponseEntity<ResponseDTO> login(@RequestBody LoginDTO dto){
         try{
-            userService.login(dto);
-            return ResponseEntity.ok("Message: User Logged in Successfully!");
+            ResponseDTO user = userService.login(dto);
+            return ResponseEntity.ok(user);
         }
         catch (Exception e){
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
 
@@ -46,9 +48,9 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUser(@PathVariable Long id){
+    public ResponseEntity<ResponseDTO> getUser(@PathVariable Long id){
         try{
-            User user = userService.getUser(id);
+            ResponseDTO user = userService.getUser(id);
             return ResponseEntity.ok(user);
         } catch (Exception e) {
             return ResponseEntity.notFound().build();
