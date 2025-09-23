@@ -1,0 +1,39 @@
+package com.SRVK.Hardware.controller;
+
+import com.SRVK.Hardware.dto.AddItemRequest;
+import com.SRVK.Hardware.entity.Cart;
+import com.SRVK.Hardware.service.CartService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/cart")
+@RequiredArgsConstructor
+
+public class CartController {
+
+private final CartService cartService;
+
+    @PostMapping("/add")
+    public ResponseEntity<Cart> addItem(@RequestBody AddItemRequest request) {
+        return ResponseEntity.ok(cartService.addItem(request));
+    }
+
+    @GetMapping("/{userId}")
+    public ResponseEntity<Cart> getCart(@PathVariable Long userId) {
+        return ResponseEntity.ok(cartService.getCart(userId));
+    }
+
+    @DeleteMapping("/item/{cartItemId}")
+    public ResponseEntity<String> removeItem(@PathVariable Long cartItemId) {
+        cartService.removeItem(cartItemId);
+        return ResponseEntity.ok("Item removed");
+    }
+
+    @PostMapping("/{userId}/checkout")
+    public ResponseEntity<Cart> checkout(@PathVariable Long userId) {
+        return ResponseEntity.ok(cartService.checkout(userId));
+    }
+
+}
