@@ -39,7 +39,7 @@ public class CartService {
                 });
     }
 
-    public CartItemResponseDTO addItem(AddItemRequest request) {
+    public Cart addItem(AddItemRequest request) {
         Cart cart = getOrCreateCart(request.getUserId());
         Product product = productRepository.findById(request.getProductId())
                 .orElseThrow(() -> new RuntimeException("Product not found"));
@@ -68,7 +68,7 @@ public class CartService {
         cart.getItems().add(item);
         cartRepository.save(cart);
         
-        return cartToCartItemResponseDTO(cart);
+        return cart;
     }
 
     public Cart getCart(Long userId) {
