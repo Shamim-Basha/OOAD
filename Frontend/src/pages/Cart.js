@@ -14,7 +14,7 @@ const Cart = () => {
   const loadCart = () => {
     setLoading(true);
     setError('');
-    fetch(`${API_BASE}/cart/user/${USER_ID}`)
+    fetch(`${API_BASE}/cart/${USER_ID}`)
       .then(async (res) => {
         if (!res.ok) {
           const text = await res.text();
@@ -23,20 +23,26 @@ const Cart = () => {
         return res.json();
       })
       .then((data) => {
-        const mapped = (data.cartItems || []).map((ci) => ({
-          id: ci.id, // cart item id
-          productId: ci.product?.id,
-          name: ci.product?.name,
-          price: Number(ci.unitPrice),
-          originalPrice: Number(ci.product?.originalPrice ?? ci.unitPrice),
-          image: ci.product?.imageUrl,
-          category: ci.product?.categoryName,
-          quantity: ci.quantity,
-          inStock: ci.available
+        // Backend returns a Cart entity. Cart likely contains a collection of cart items.
+        // We'll accept common property names: cartItems, items, cartItemList, etc.
+        const rawItems = data?.cartItems || data?.items || data?.cartItemList || [];
+        const mapped = (rawItems || []).map((ci) => ({
+          id: ci.id, // cart item id (used for delete)
+          productId: ci.product?.id ?? ci.productId ?? ci.productId,
+          name: ci.product?.name ?? ci.name,
+          price: Number(ci.unitPrice ?? ci.price ?? 0),
+          originalPrice: Number(ci.product?.originalPrice ?? ci.originalPrice ?? ci.unitPrice ?? ci.price ?? 0),
+          image: ci.product?.imageUrl ?? ci.imageUrl ?? ci.image,
+          category: ci.product?.categoryName ?? ci.categoryName ?? ci.category,
+          quantity: ci.quantity ?? 1,
+          inStock: typeof ci.available !== 'undefined' ? ci.available : true
         }));
         setCartItems(mapped);
       })
-      .catch(() => setError('Failed to load cart'))
+      .catch((err) => {
+        console.error('loadCart error', err);
+        setError('Failed to load cart');
+      })
       .finally(() => setLoading(false));
   };
 
@@ -45,21 +51,55 @@ const Cart = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Use POST /api/cart/add to add/update quantities.
+  // Many backends treat addItem as "set quantity" or "increase by." Adjust AddItemRequest shape if needed.
   const updateQuantity = (productId, newQuantity) => {
     if (newQuantity < 1) return;
-    fetch(`${API_BASE}/cart/user/${USER_ID}/update?productId=${encodeURIComponent(productId)}&quantity=${encodeURIComponent(newQuantity)}`, {
-      method: 'PUT'
+    setError('');
+    const body = {
+      userId: USER_ID,
+      productId,
+      quantity: newQuantity
+    };
+    fetch(`${API_BASE}/cart/add`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
     })
+      .then(async (res) => {
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(text || 'Failed to update quantity');
+        }
+        return res.json();
+      })
       .then(() => loadCart())
-      .catch(() => setError('Failed to update quantity'));
+      .catch((err) => {
+        console.error('updateQuantity error', err);
+        setError('Failed to update quantity');
+      });
   };
 
-  const removeItem = (productId) => {
-    fetch(`${API_BASE}/cart/user/${USER_ID}/remove?productId=${encodeURIComponent(productId)}`, {
+  // Remove item uses cartItemId (not productId)
+  const removeItem = (cartItemId) => {
+    setError('');
+    fetch(`${API_BASE}/cart/item/${encodeURIComponent(cartItemId)}`, {
       method: 'DELETE'
     })
+      .then(async (res) => {
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(text || 'Failed to remove item');
+        }
+        return res.text(); // backend returns "Item removed"
+      })
       .then(() => loadCart())
-      .catch(() => setError('Failed to remove item'));
+      .catch((err) => {
+        console.error('removeItem error', err);
+        setError('Failed to remove item');
+      });
   };
 
   const calculateSubtotal = () => {
@@ -88,8 +128,28 @@ const Cart = () => {
 
   const navigate = useNavigate();
 
+  // Checkout: call backend then navigate to confirmation / checkout flow
   const handleCheckout = () => {
-    navigate('/checkout');
+    setError('');
+    fetch(`${API_BASE}/cart/${USER_ID}/checkout`, {
+      method: 'POST'
+    })
+      .then(async (res) => {
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(text || 'Checkout failed');
+        }
+        return res.json();
+      })
+      .then((data) => {
+        // If backend returns a Cart or order info, you can parse it here.
+        // For now, navigate to checkout page (or order confirmation).
+        navigate('/checkout');
+      })
+      .catch((err) => {
+        console.error('checkout error', err);
+        setError('Checkout failed. Please try again.');
+      });
   };
 
   if (loading) {
@@ -188,7 +248,7 @@ const Cart = () => {
 
                 <button
                   className="remove-btn"
-                  onClick={() => removeItem(item.productId)}
+                  onClick={() => removeItem(item.id)} // pass cartItemId
                   title="Remove item"
                 >
                   <FaTrash />
@@ -249,10 +309,11 @@ const Cart = () => {
                 <FaCreditCard /> Proceed to Checkout
               </button>
             </div>
+            {error && <p style={{ marginTop: 12, color: '#c00' }}>{error}</p>}
           </div>
         </div>
 
-        {/* Recommended Products */}
+        {/* Recommended Products - unchanged */}
         <div className="recommended-products">
           <h2>You might also like</h2>
           <div className="recommended-grid">
@@ -281,4 +342,4 @@ const Cart = () => {
   );
 };
 
-export default Cart; 
+export default Cart;
