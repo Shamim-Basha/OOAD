@@ -15,10 +15,9 @@ const Navbar = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
     const userData = localStorage.getItem('user');
     
-    if (token && userData) {
+    if (userData) {
       setIsLoggedIn(true);
       setUser(JSON.parse(userData));
     } else {
@@ -38,7 +37,6 @@ const Navbar = () => {
   const handleLogout = () => {
     const toastId = toast.loading('🔐 Signing out...');
 
-    localStorage.removeItem('token');
     localStorage.removeItem('user');
     setIsLoggedIn(false);
     setUser(null);

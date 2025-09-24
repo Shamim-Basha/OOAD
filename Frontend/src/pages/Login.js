@@ -26,10 +26,10 @@ const Login = () => {
     setIsLoading(true);
 
     // Show loading toast
-    const toastId = toast.loading('🔐 Signing in...');
+    const toastId = toast.loading('Signing in...');
 
     try {
-      const response = await fetch('http://localhost:8080/api/auth/login', {
+      const response = await fetch('http://localhost:8080/api/users/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -41,25 +41,22 @@ const Login = () => {
 
       if (response.ok) {
         toast.update(toastId, {
-          render: '✅ Login successful!',
+          render: 'Login successful!',
           type: 'success',
           isLoading: false,
           autoClose: 2000,
           closeOnClick: true,
         });
 
-        // Store token and user data
-        localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data));
 
-        // Redirect after short delay
         setTimeout(() => {
           navigate('/');
           window.location.reload();
-        }, 2000);
+        }, 1000);
       } else {
         toast.update(toastId, {
-          render: data.message || '❌ Invalid username or password',
+          render: data.message || 'Invalid username or password',
           type: 'error',
           isLoading: false,
           autoClose: 3000,
@@ -68,7 +65,7 @@ const Login = () => {
       }
     } catch (error) {
       toast.update(toastId, {
-        render: '🌐 Network error. Please try again.',
+        render: 'Network error. Please try again.',
         type: 'error',
         isLoading: false,
         autoClose: 3000,
