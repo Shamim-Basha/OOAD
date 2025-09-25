@@ -1,73 +1,156 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { FaSearch, FaStar, FaShoppingCart, FaEye } from 'react-icons/fa';
-import axios from 'axios';
+import { Link, useSearchParams } from 'react-router-dom';
+import { FaSearch, FaShoppingCart, FaEye } from 'react-icons/fa';
 import './Products.css';
 
 const Products = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [priceRange, setPriceRange] = useState([0, 100000]);
+  const [priceRange, setPriceRange] = useState([0, 100000]); 
   const [sortBy, setSortBy] = useState('name');
 
-  // Fetch products from backend
+  // Mock products data
+  const mockProducts = [
+    {
+      id: 1,
+      name: "Bosch Professional Drill",
+      price: 25000,
+      image: "https://images.unsplash.com/photo-1581147036325-860c6c2a3b0c?w=400&h=300&fit=crop",
+      category: "power-tools",
+      categoryName: "Power Tools",
+      inStock: true,
+      description: "Professional grade drill with variable speed control"
+    },
+    {
+      id: 2,
+      name: "Stanley Hammer Set",
+      price: 3500,
+      image: "https://images.unsplash.com/photo-1581147036325-860c6c2a3b0c?w=400&h=300&fit=crop",
+      category: "hand-tools",
+      categoryName: "Hand Tools",
+      inStock: true,
+      description: "Complete hammer set with various sizes"
+    },
+    {
+      id: 3,
+      name: "PVC Pipes 4-inch",
+      price: 1200,
+      image: "https://images.unsplash.com/photo-1581147036325-860c6c2a3b0c?w=400&h=300&fit=crop",
+      category: "plumbing",
+      categoryName: "Plumbing",
+      inStock: true,
+      description: "High-quality PVC pipes for plumbing"
+    },
+    {
+      id: 4,
+      name: "LED Light Bulbs Pack",
+      price: 2800,
+      image: "https://images.unsplash.com/photo-1581147036325-860c6c2a3b0c?w=400&h=300&fit=crop",
+      category: "electrical",
+      categoryName: "Electrical",
+      inStock: true,
+      description: "Energy-efficient LED bulbs pack"
+    },
+    {
+      id: 5,
+      name: "Dewalt Circular Saw",
+      price: 45000,
+      image: "https://images.unsplash.com/photo-1581147036325-860c6c2a3b0c?w=400&h=300&fit=crop",
+      category: "power-tools",
+      categoryName: "Power Tools",
+      inStock: true,
+      description: "Professional circular saw with safety features"
+    },
+    {
+      id: 6,
+      name: "Paint Brushes Set",
+      price: 1500,
+      image: "https://images.unsplash.com/photo-1581147036325-860c6c2a3b0c?w=400&h=300&fit=crop",
+      category: "paint",
+      categoryName: "Paint & Supplies",
+      inStock: true,
+      description: "Professional paint brushes for all surfaces"
+    },
+    {
+      id: 7,
+      name: "Makita Angle Grinder",
+      price: 32000,
+      image: "https://images.unsplash.com/photo-1581147036325-860c6c2a3b0c?w=400&h=300&fit=crop",
+      category: "power-tools",
+      categoryName: "Power Tools",
+      inStock: false,
+      description: "Heavy-duty angle grinder for metal work"
+    },
+    {
+      id: 8,
+      name: "Copper Wire 2.5mm",
+      price: 8500,
+      image: "https://images.unsplash.com/photo-1581147036325-860c6c2a3b0c?w=400&h=300&fit=crop",
+      category: "electrical",
+      categoryName: "Electrical",
+      inStock: true,
+      description: "High-quality copper wire for electrical work"
+    }
+  ];
+
+  const categories = [
+    { value: 'all', label: 'All Categories' },
+    { value: 'power-tools', label: 'Power Tools' },
+    { value: 'hand-tools', label: 'Hand Tools' },
+    { value: 'plumbing', label: 'Plumbing' },
+    { value: 'electrical', label: 'Electrical' },
+    { value: 'paint', label: 'Paint & Supplies' }
+  ];
+
   useEffect(() => {
-    setLoading(true);
-    axios.get('http://localhost:8080/api/products') // Update with your backend endpoint
-      .then(response => setProducts(response.data))
-      .catch(err => console.error('Error fetching products:', err))
-      .finally(() => setLoading(false));
+    // Simulate API call
+    setTimeout(() => {
+      setProducts(mockProducts);
+      setLoading(false);
+    }, 1000);
   }, []);
 
-  // Filter products whenever dependencies change
   useEffect(() => {
     filterProducts();
   }, [products, searchTerm, selectedCategory, priceRange, sortBy]);
 
   const filterProducts = () => {
     let filtered = products.filter(product => {
-      const matchesSearch =
-        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()));
-
+      const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           product.description.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
       const matchesPrice = product.price >= priceRange[0] && product.price <= priceRange[1];
-
+      
       return matchesSearch && matchesCategory && matchesPrice;
     });
 
     // Sort products
     filtered.sort((a, b) => {
       switch (sortBy) {
-        case 'price-low': return a.price - b.price;
-        case 'price-high': return b.price - a.price;
-        case 'rating': return (b.rating || 0) - (a.rating || 0);
-        default: return a.name.localeCompare(b.name);
+        case 'price-low':
+          return a.price - b.price;
+        case 'price-high':
+          return b.price - a.price;
+        case 'name':
+        default:
+          return a.name.localeCompare(b.name);
       }
     });
 
     setFilteredProducts(filtered);
   };
 
-  const renderStars = (rating) => {
-    const stars = [];
-    for (let i = 1; i <= 5; i++) {
-      stars.push(<FaStar key={i} className={i <= rating ? 'star filled' : 'star'} />);
-    }
-    return stars;
+  const formatPrice = (price) => {
+    return `Rs. ${price.toLocaleString()}`;
   };
-
-  const formatPrice = (price) => `Rs. ${price?.toLocaleString() || 0}`;
 
   const addToCart = (product) => {
     console.log('Added to cart:', product);
   };
-
-  // Generate categories dynamically from products
-  const categories = ['all', ...new Set(products.map(p => p.category))];
 
   if (loading) {
     return (
@@ -82,13 +165,11 @@ const Products = () => {
   return (
     <div className="products-page">
       <div className="container">
-        {/* Page Header */}
         <div className="page-header">
           <h1>Our Products</h1>
           <p>Discover quality hardware products for all your construction and DIY needs</p>
         </div>
 
-        {/* Filters and Search */}
         <div className="filters-section">
           <div className="search-filter">
             <div className="search-box">
@@ -112,7 +193,9 @@ const Products = () => {
                 className="filter-select"
               >
                 {categories.map(category => (
-                  <option key={category} value={category}>{category}</option>
+                  <option key={category.value} value={category.value}>
+                    {category.label}
+                  </option>
                 ))}
               </select>
             </div>
@@ -148,47 +231,33 @@ const Products = () => {
                 <option value="name">Name</option>
                 <option value="price-low">Price: Low to High</option>
                 <option value="price-high">Price: High to Low</option>
-                <option value="rating">Rating</option>
               </select>
             </div>
           </div>
         </div>
 
-        {/* Results Count */}
         <div className="results-count">
           <p>Showing {filteredProducts.length} of {products.length} products</p>
         </div>
 
-        {/* Products Grid */}
         {filteredProducts.length > 0 ? (
           <div className="products-grid">
             {filteredProducts.map(product => (
               <div key={product.id} className="product-card">
                 <div className="product-image">
                   <img src={product.image} alt={product.name} />
-                  {!product.inStock && <div className="out-of-stock">Out of Stock</div>}
-                  {product.originalPrice > product.price && (
-                    <div className="discount-badge">
-                      {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% OFF
-                    </div>
+                  {!product.inStock && (
+                    <div className="out-of-stock">Out of Stock</div>
                   )}
                 </div>
 
                 <div className="product-info">
-                  <span className="category-badge">{product.category}</span>
+                  <span className="category-badge">{product.categoryName}</span>
                   <h3 className="product-name">{product.name}</h3>
                   <p className="product-description">{product.description}</p>
 
-                  <div className="product-rating">
-                    {renderStars(product.rating || 0)}
-                    <span className="rating-count">({product.reviews || 0})</span>
-                  </div>
-
                   <div className="product-price">
                     <span className="current-price">{formatPrice(product.price)}</span>
-                    {product.originalPrice > product.price && (
-                      <span className="original-price">{formatPrice(product.originalPrice)}</span>
-                    )}
                   </div>
 
                   <div className="product-actions">
