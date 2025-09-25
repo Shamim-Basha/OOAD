@@ -22,10 +22,36 @@ const Products = () => {
     { value: 'Paint', label: 'Paint & Supplies' }
   ];
 
-    useEffect(() => {
+  const placeholderImage = 'https://via.placeholder.com/300?text=No+Image';
+
+  function convertByteToImage(image) {
+    if (!image) return placeholderImage;
+    return `data:image/png;base64,${image}`;
+  }
+
+  useEffect(() => {
     axios.get("http://localhost:8080/api/products")
       .then((res) => {
-        setProducts(res.data);
+        const prods = (res.data || []).map(p => {
+          const product = {
+            id: p.id,
+            name: p.name || '',
+            quantity: p.quantity ?? 0,
+            category: p.category || '',
+            subCategory: p.subCategory || '',
+            description: p.description || '',
+            price: p.price ?? 0,
+            image: p.image ?? null
+          };
+          try {
+            product.imageSrc = convertByteToImage(product.image);
+          } catch (e) {
+            console.error('Error converting image for product', product.id, e);
+            product.imageSrc = placeholderImage;
+          }
+          return product;
+        });
+        setProducts(prods);
         setLoading(false);
       })
       .catch((err) => {
@@ -36,6 +62,7 @@ const Products = () => {
 
   useEffect(() => {
     filterProducts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [products, searchTerm, selectedCategory, priceRange, sortBy]);
 
   const filterProducts = () => {
@@ -79,8 +106,6 @@ const Products = () => {
     console.log('Added to cart:', product);
     // implement cart logic here
   };
-
-  const placeholderImage = 'https://via.placeholder.com/300?text=No+Image';
 
   if (loading) {
     return (
@@ -175,7 +200,10 @@ const Products = () => {
             {filteredProducts.map(product => (
               <div key={product.id} className="product-card">
                 <div className="product-image">
-                  <img src={product.image || placeholderImage} alt={product.name} />
+                  <img
+                    src={product.imageSrc || placeholderImage}
+                    alt={product.name}
+                  />
                   {(product.quantity === 0) && (
                     <div className="out-of-stock">Out of Stock</div>
                   )}
@@ -191,7 +219,9 @@ const Products = () => {
                   <p className="product-description">{product.description}</p>
 
                   <div className="product-meta">
-                    <span className="stock-info">{product.quantity > 0 ? `In stock: ${product.quantity}` : 'Out of stock'}</span>
+                    <span className={`stock-info ${product.quantity === 0 ? 'out' : ''}`}>
+                      {product.quantity > 0 ? `In stock: ${product.quantity}` : 'Out of stock'}
+                    </span>
                   </div>
 
                   <div className="product-price">
