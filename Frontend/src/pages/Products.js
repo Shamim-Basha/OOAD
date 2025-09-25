@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { FaSearch, FaShoppingCart, FaEye } from 'react-icons/fa';
 import './Products.css';
+import axios from 'axios';
 
 const Products = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -10,108 +11,27 @@ const Products = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [priceRange, setPriceRange] = useState([0, 100000]); 
+  const [priceRange, setPriceRange] = useState([0, 100000]);
   const [sortBy, setSortBy] = useState('name');
-
-  // Mock products data
-  const mockProducts = [
-    {
-      id: 1,
-      name: "Bosch Professional Drill",
-      price: 25000,
-      image: "https://images.unsplash.com/photo-1581147036325-860c6c2a3b0c?w=400&h=300&fit=crop",
-      category: "power-tools",
-      categoryName: "Power Tools",
-      inStock: true,
-      description: "Professional grade drill with variable speed control"
-    },
-    {
-      id: 2,
-      name: "Stanley Hammer Set",
-      price: 3500,
-      image: "https://images.unsplash.com/photo-1581147036325-860c6c2a3b0c?w=400&h=300&fit=crop",
-      category: "hand-tools",
-      categoryName: "Hand Tools",
-      inStock: true,
-      description: "Complete hammer set with various sizes"
-    },
-    {
-      id: 3,
-      name: "PVC Pipes 4-inch",
-      price: 1200,
-      image: "https://images.unsplash.com/photo-1581147036325-860c6c2a3b0c?w=400&h=300&fit=crop",
-      category: "plumbing",
-      categoryName: "Plumbing",
-      inStock: true,
-      description: "High-quality PVC pipes for plumbing"
-    },
-    {
-      id: 4,
-      name: "LED Light Bulbs Pack",
-      price: 2800,
-      image: "https://images.unsplash.com/photo-1581147036325-860c6c2a3b0c?w=400&h=300&fit=crop",
-      category: "electrical",
-      categoryName: "Electrical",
-      inStock: true,
-      description: "Energy-efficient LED bulbs pack"
-    },
-    {
-      id: 5,
-      name: "Dewalt Circular Saw",
-      price: 45000,
-      image: "https://images.unsplash.com/photo-1581147036325-860c6c2a3b0c?w=400&h=300&fit=crop",
-      category: "power-tools",
-      categoryName: "Power Tools",
-      inStock: true,
-      description: "Professional circular saw with safety features"
-    },
-    {
-      id: 6,
-      name: "Paint Brushes Set",
-      price: 1500,
-      image: "https://images.unsplash.com/photo-1581147036325-860c6c2a3b0c?w=400&h=300&fit=crop",
-      category: "paint",
-      categoryName: "Paint & Supplies",
-      inStock: true,
-      description: "Professional paint brushes for all surfaces"
-    },
-    {
-      id: 7,
-      name: "Makita Angle Grinder",
-      price: 32000,
-      image: "https://images.unsplash.com/photo-1581147036325-860c6c2a3b0c?w=400&h=300&fit=crop",
-      category: "power-tools",
-      categoryName: "Power Tools",
-      inStock: false,
-      description: "Heavy-duty angle grinder for metal work"
-    },
-    {
-      id: 8,
-      name: "Copper Wire 2.5mm",
-      price: 8500,
-      image: "https://images.unsplash.com/photo-1581147036325-860c6c2a3b0c?w=400&h=300&fit=crop",
-      category: "electrical",
-      categoryName: "Electrical",
-      inStock: true,
-      description: "High-quality copper wire for electrical work"
-    }
-  ];
 
   const categories = [
     { value: 'all', label: 'All Categories' },
-    { value: 'power-tools', label: 'Power Tools' },
-    { value: 'hand-tools', label: 'Hand Tools' },
-    { value: 'plumbing', label: 'Plumbing' },
-    { value: 'electrical', label: 'Electrical' },
-    { value: 'paint', label: 'Paint & Supplies' }
+    { value: 'Tools', label: 'Tools' },
+    { value: 'Plumbing', label: 'Plumbing' },
+    { value: 'Electrical', label: 'Electrical' },
+    { value: 'Paint', label: 'Paint & Supplies' }
   ];
 
-  useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      setProducts(mockProducts);
-      setLoading(false);
-    }, 1000);
+    useEffect(() => {
+    axios.get("http://localhost:8080/api/products")
+      .then((res) => {
+        setProducts(res.data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Error while retrieving the products:", err);
+        setLoading(false);
+      });
   }, []);
 
   useEffect(() => {
@@ -119,12 +39,19 @@ const Products = () => {
   }, [products, searchTerm, selectedCategory, priceRange, sortBy]);
 
   const filterProducts = () => {
+    const term = searchTerm.trim().toLowerCase();
+
     let filtered = products.filter(product => {
-      const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           product.description.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch =
+        product.name.toLowerCase().includes(term) ||
+        product.description.toLowerCase().includes(term) ||
+        product.category?.toLowerCase().includes(term) ||
+        product.subCategory?.toLowerCase().includes(term);
+
       const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
+
       const matchesPrice = product.price >= priceRange[0] && product.price <= priceRange[1];
-      
+
       return matchesSearch && matchesCategory && matchesPrice;
     });
 
@@ -150,7 +77,10 @@ const Products = () => {
 
   const addToCart = (product) => {
     console.log('Added to cart:', product);
+    // implement cart logic here
   };
+
+  const placeholderImage = 'https://via.placeholder.com/300?text=No+Image';
 
   if (loading) {
     return (
@@ -207,7 +137,7 @@ const Products = () => {
                   type="number"
                   placeholder="Min"
                   value={priceRange[0]}
-                  onChange={(e) => setPriceRange([parseInt(e.target.value) || 0, priceRange[1]])}
+                  onChange={(e) => setPriceRange([parseInt(e.target.value, 10) || 0, priceRange[1]])}
                   className="price-input"
                 />
                 <span>-</span>
@@ -215,7 +145,7 @@ const Products = () => {
                   type="number"
                   placeholder="Max"
                   value={priceRange[1]}
-                  onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value) || 100000])}
+                  onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value, 10) || 100000])}
                   className="price-input"
                 />
               </div>
@@ -245,16 +175,24 @@ const Products = () => {
             {filteredProducts.map(product => (
               <div key={product.id} className="product-card">
                 <div className="product-image">
-                  <img src={product.image} alt={product.name} />
-                  {!product.inStock && (
+                  <img src={product.image || placeholderImage} alt={product.name} />
+                  {(product.quantity === 0) && (
                     <div className="out-of-stock">Out of Stock</div>
                   )}
                 </div>
 
                 <div className="product-info">
-                  <span className="category-badge">{product.categoryName}</span>
+                  <div className="badges">
+                    <span className="category-badge">{product.category}</span>
+                    {product.subCategory && <span className="subcategory-badge">{product.subCategory}</span>}
+                  </div>
+
                   <h3 className="product-name">{product.name}</h3>
                   <p className="product-description">{product.description}</p>
+
+                  <div className="product-meta">
+                    <span className="stock-info">{product.quantity > 0 ? `In stock: ${product.quantity}` : 'Out of stock'}</span>
+                  </div>
 
                   <div className="product-price">
                     <span className="current-price">{formatPrice(product.price)}</span>
@@ -267,7 +205,7 @@ const Products = () => {
                     <button
                       className="btn btn-primary"
                       onClick={() => addToCart(product)}
-                      disabled={!product.inStock}
+                      disabled={product.quantity === 0}
                     >
                       <FaShoppingCart /> Add to Cart
                     </button>
