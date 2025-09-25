@@ -9,6 +9,8 @@ import Products from './pages/Products';
 import Register from './pages/Register';
 import Login from './pages/Login';
 import RentalList from './Components1/RentalList';
+import Cart from './pages/Cart';
+
 
 function App() {
   return (
@@ -20,7 +22,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/products" element={<Products />} />
             <Route path="/rentals" element={<RentalList />} />
-            <Route path="/cart" element={<Home />} />
+            <Route path="/cart" element={<Cart />} />
             <Route path="/contact" element={<Home />} />
             <Route path="/product/:id" element={<Home />} />
             <Route path="/rental/:id" element={<Home />} />

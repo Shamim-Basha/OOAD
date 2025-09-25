@@ -5,32 +5,7 @@ import axios from 'axios';
 import './Home.css';
 
 const Home = () => {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  const rentalServices = [
-    {
-      id: 1,
-      name: "Excavator Rental",
-      price: "Rs. 15,000/day",
-      image: "https://images.unsplash.com/photo-1581147036325-860c6c2a3b0c?w=400&h=300&fit=crop",
-      description: "Professional excavator for construction projects"
-    },
-    {
-      id: 2,
-      name: "Concrete Mixer",
-      price: "Rs. 8,000/day",
-      image: "https://images.unsplash.com/photo-1581147036325-860c6c2a3b0c?w=400&h=300&fit=crop",
-      description: "Heavy-duty concrete mixer for large projects"
-    },
-    {
-      id: 3,
-      name: "Scaffolding Set",
-      price: "Rs. 5,000/day",
-      image: "https://images.unsplash.com/photo-1581147036325-860c6c2a3b0c?w=400&h=300&fit=crop",
-      description: "Complete scaffolding system for construction"
-    }
-  ];
+  const [loading, setLoading] = useState(false);
 
   const features = [
     { icon: <FaTruck />, title: "Free Delivery", description: "Free delivery across Colombo and surrounding areas" },
@@ -38,28 +13,6 @@ const Home = () => {
     { icon: <FaTools />, title: "Expert Support", description: "Professional advice from our experienced team" },
     { icon: <FaStar />, title: "Best Prices", description: "Competitive prices for quality hardware products" }
   ];
-
-  useEffect(() => {
-    axios.get('/api/products')
-      .then(response => {
-        setProducts(response.data);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error('Error fetching products:', err);
-        setLoading(false);
-      });
-  }, []);
-
-  const renderStars = (rating) => {
-    const stars = [];
-    for (let i = 1; i <= 5; i++) {
-      stars.push(<FaStar key={i} className={i <= rating ? 'star filled' : 'star'} />);
-    }
-    return stars;
-  };
-
-  const featuredProducts = products.slice(0, 4); // Show first 4 products as featured
 
   if (loading) {
     return (
@@ -100,66 +53,9 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Featured Products */}
-      <section className="featured-products section">
-        <div className="container">
-          <h2 className="section-title">Featured Products</h2>
-          <p className="section-subtitle">Discover our most popular hardware products</p>
-          
-          <div className="grid grid-4">
-            {featuredProducts.map(product => (
-              <div key={product.id} className="card product-card">
-                <img src={product.image} alt={product.name} className="card-img" />
-                <div className="card-body">
-                  <span className="badge badge-primary">{product.category}</span>
-                  <h3 className="card-title">{product.name}</h3>
-                  <div className="rating">
-                    {renderStars(product.rating || 0)}
-                    <span className="rating-text">({product.rating || 0})</span>
-                  </div>
-                  <div className="card-price">Rs. {product.price?.toLocaleString() || 0}</div>
-                  <Link to={`/product/${product.id}`} className="btn btn-primary">View Details</Link>
-                </div>
-              </div>
-            ))}
-          </div>
-          
-          <div className="text-center" style={{ marginTop: '40px' }}>
-            <Link to="/products" className="btn btn-outline">View All Products <FaArrowRight /></Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Rental Services */}
-      <section className="rental-services section">
-        <div className="container">
-          <h2 className="section-title">Equipment Rental Services</h2>
-          <p className="section-subtitle">Professional equipment for your construction projects</p>
-          
-          <div className="grid grid-3">
-            {rentalServices.map(service => (
-              <div key={service.id} className="card service-card">
-                <img src={service.image} alt={service.name} className="card-img" />
-                <div className="card-body">
-                  <h3 className="card-title">{service.name}</h3>
-                  <p className="card-text">{service.description}</p>
-                  <div className="card-price">{service.price}</div>
-                  <Link to={`/rental/${service.id}`} className="btn btn-primary">Rent Now</Link>
-                </div>
-              </div>
-            ))}
-          </div>
-          
-          <div className="text-center" style={{ marginTop: '40px' }}>
-            <Link to="/rentals" className="btn btn-outline">View All Services <FaArrowRight /></Link>
-          </div>
-        </div>
-      </section>
-
       {/* About Section */}
       <section className="about-section section">
         <div className="container">
-          <div className="about-content">
             <div className="about-text">
               <h2>Why Choose Lanka Hardware?</h2>
               <p>With over 15 years of experience serving the Sri Lankan construction industry, we have built a reputation for quality, reliability, and excellent customer service.</p>
@@ -170,10 +66,6 @@ const Home = () => {
                 <div className="stat"><h3>1000+</h3><p>Products Available</p></div>
               </div>
             </div>
-            <div className="about-image">
-              <img src="https://images.unsplash.com/photo-1581147036325-860c6c2a3b0c?w=500&h=400&fit=crop" alt="Lanka Hardware Store" />
-            </div>
-          </div>
         </div>
       </section>
 
