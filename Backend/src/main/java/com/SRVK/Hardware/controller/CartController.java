@@ -10,19 +10,29 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/cart")
 @RequiredArgsConstructor
-
 public class CartController {
 
 private final CartService cartService;
 
     @PostMapping("/add")
     public ResponseEntity<Cart> addItem(@RequestBody AddItemRequest request) {
-        return ResponseEntity.ok(cartService.addItem(request));
+        try{
+            return ResponseEntity.ok(cartService.addItem(request));
+        }
+        catch(Exception e){
+            return ResponseEntity.noContent().build();
+        }
     }
 
     @GetMapping("/{userId}")
     public ResponseEntity<Cart> getCart(@PathVariable Long userId) {
-        return ResponseEntity.ok(cartService.getCart(userId));
+        try{
+            Cart cart = cartService.getCart(userId);
+            return ResponseEntity.ok(cart);
+        }
+        catch(Exception e){
+            return ResponseEntity.noContent().build();
+        }
     }
 
     @DeleteMapping("/item/{cartItemId}")
