@@ -148,6 +148,10 @@
   position: relative;
   height: 250px;
   overflow: hidden;
+  background: #f8f9fa; /* subtle background for null images */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .product-image img {
@@ -171,23 +175,45 @@
   border-radius: 4px;
   font-size: 12px;
   font-weight: 600;
+  z-index: 3;
 }
 
+/* Product content */
 .product-info {
   padding: 20px;
 }
 
-.category-badge {
+/* Badges: category + subcategory */
+.badges {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.category-badge,
+.subcategory-badge {
   display: inline-block;
-  background: #e9ecef;
-  color: #666;
   padding: 4px 8px;
   border-radius: 12px;
   font-size: 12px;
   font-weight: 600;
-  margin-bottom: 10px;
 }
 
+/* distinct styles so category and subCategory are visually separated */
+.category-badge {
+  background: #e9ecef;
+  color: #666;
+}
+
+.subcategory-badge {
+  background: #fff4e6;
+  color: #8a5c00;
+  border: 1px solid rgba(212,175,55,0.12);
+}
+
+/* name, desc */
 .product-name {
   font-size: 18px;
   font-weight: 600;
@@ -200,9 +226,31 @@
   color: #666;
   font-size: 14px;
   line-height: 1.5;
-  margin-bottom: 15px;
+  margin-bottom: 12px;
 }
 
+/* stock info (quantity) */
+.product-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.stock-info {
+  font-size: 13px;
+  color: #333;
+  font-weight: 600;
+}
+
+.stock-info.out {
+  color: #dc3545;
+  font-weight: 700;
+}
+
+/* price */
 .product-price {
   margin-bottom: 20px;
 }
@@ -213,6 +261,7 @@
   color: #d4af37;
 }
 
+/* actions */
 .product-actions {
   display: flex;
   gap: 10px;
@@ -222,10 +271,13 @@
   flex: 1;
   font-size: 14px;
   padding: 10px 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .product-actions .btn svg {
-  margin-right: 5px;
+  margin-right: 8px;
 }
 
 /* No Results */
@@ -246,6 +298,24 @@
 .no-results p {
   color: #666;
   margin-bottom: 20px;
+}
+
+/* Buttons (basic) */
+.btn {
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-outline {
+  background: white;
+  border: 1px solid #d4af37;
+  color: #333;
+}
+
+.btn-primary {
+  background: #d4af37;
+  color: #fff;
 }
 
 /* Responsive Design */
@@ -288,5 +358,9 @@
 
   .product-image {
     height: 200px;
+  }
+
+  .badges {
+    gap: 6px;
   }
 }
