@@ -144,22 +144,36 @@ const ServiceDetail = () => {
 
   const handleRentNow = async () => {
     if (!service) return;
+    // Basic client-side validation to match backend constraints
+    if (!startDate || !endDate) {
+      alert('Please select start and end dates.');
+      return;
+    }
+    const todayStr = new Date().toISOString().split('T')[0];
+    if (startDate < todayStr) {
+      alert('Start date cannot be in the past.');
+      return;
+    }
+    if (endDate <= startDate) {
+      alert('End date must be after start date.');
+      return;
+    }
+
     try {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
-      const userId = user?.id || 1; // fallback for demo
+      const userId = Number(user?.id || 1);
       const payload = {
-        userId: String(userId),
-        toolId: String(service.id),
-        startDate,
-        endDate
+        userId,
+        toolId: Number(service.id),
+        startDate, // yyyy-mm-dd
+        endDate,   // yyyy-mm-dd
+        quantity: 1
       };
       const res = await axios.post('http://localhost:8080/api/rentals', payload);
-      console.log('Rental created', res.data);
-      // navigate to a cart placeholder
       navigate('/cart', { state: { rental: res.data, fees } });
     } catch (e) {
-      console.error(e);
-      alert('Failed to create rental');
+      const message = e?.response?.data?.message || e?.message || 'Failed to create rental';
+      alert(message);
     }
   };
 
@@ -333,7 +347,7 @@ const ServiceDetail = () => {
                 <button
                   className="btn btn-primary rent-btn"
                   onClick={handleRentNow}
-                  disabled={!service.available}
+                  disabled={!service.available || !startDate || !endDate}
                 >
                   Rent Now
                 </button>
