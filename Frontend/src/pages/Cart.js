@@ -9,7 +9,7 @@ const Cart = () => {
   const [error, setError] = useState('');
 
   const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
-  const USER_ID = Number(process.env.REACT_APP_USER_ID || localStorage.getItem('userId') || 1);
+  const USER_ID = localStorage.getItem('userId') || 1;
 
   const loadCart = () => {
     setLoading(true);
@@ -23,8 +23,6 @@ const Cart = () => {
         return res.json();
       })
       .then((data) => {
-        // Backend returns a Cart entity. Cart likely contains a collection of cart items.
-        // We'll accept common property names: cartItems, items, cartItemList, etc.
         const rawItems = data?.cartItems || data?.items || data?.cartItemList || [];
         const mapped = (rawItems || []).map((ci) => ({
           id: ci.id, // cart item id (used for delete)
@@ -48,7 +46,6 @@ const Cart = () => {
 
   useEffect(() => {
     loadCart();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Use POST /api/cart/add to add/update quantities.
@@ -61,8 +58,8 @@ const Cart = () => {
       productId,
       quantity: newQuantity
     };
-    fetch(`${API_BASE}/cart/add`, {
-      method: 'POST',
+    fetch(`${API_BASE}/cart/item/{itemid}`, {
+      method: 'PUT',
       headers: {
         'Content-Type': 'application/json'
       },

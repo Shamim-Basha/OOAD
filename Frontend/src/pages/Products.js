@@ -14,6 +14,8 @@ const Products = () => {
   const [priceRange, setPriceRange] = useState([0, 100000]);
   const [sortBy, setSortBy] = useState('name');
 
+  const USER_ID = localStorage.getItem('userId') || 1;
+
   const categories = [
     { value: 'all', label: 'All Categories' },
     { value: 'Tools', label: 'Tools' },
@@ -30,6 +32,7 @@ const Products = () => {
   }
 
   useEffect(() => {
+    
     axios.get("http://localhost:8080/api/products")
       .then((res) => {
         const prods = (res.data || []).map(p => {
@@ -104,7 +107,12 @@ const Products = () => {
 
   const addToCart = (product) => {
     console.log('Added to cart:', product);
-    // implement cart logic here
+    axios.post("http://localhost:8080/api/cart/add",
+       {
+        userId : USER_ID,
+        productId : product.id,
+        quantity : 1
+       })
   };
 
   if (loading) {
