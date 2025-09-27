@@ -35,24 +35,24 @@ const Register = () => {
 
     // Basic validation
     if (formData.password !== formData.confirmPassword) {
-      toast.error('❌ Passwords do not match');
+      toast.error('Passwords do not match');
       return;
     }
 
     if (formData.password.length < 6) {
-      toast.warning('⚠️ Password must be at least 6 characters long');
+      toast.warning('Password must be at least 6 characters long');
       return;
     }
 
     setIsLoading(true);
 
     // Loading toast
-    const toastId = toast.loading('⏳ Creating account...');
+    const toastId = toast.loading('Creating account...');
 
     try {
       const { confirmPassword, ...submitData } = formData;
 
-      const response = await fetch('http://localhost:8080/api/auth/register', {
+      const response = await fetch('http://localhost:8080/api/users/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(submitData),
@@ -62,7 +62,7 @@ const Register = () => {
 
       if (response.ok) {
         toast.update(toastId, {
-          render: '🎉 Account created successfully!',
+          render: 'Account created successfully!',
           type: 'success',
           isLoading: false,
           autoClose: 2000,
@@ -80,7 +80,7 @@ const Register = () => {
         }, 2000);
       } else {
         toast.update(toastId, {
-          render: data.message || '❌ Registration failed',
+          render: data.message || 'Registration failed',
           type: 'error',
           isLoading: false,
           autoClose: 3000,
@@ -89,7 +89,7 @@ const Register = () => {
       }
     } catch (error) {
       toast.update(toastId, {
-        render: '🌐 Network error. Please try again.',
+        render: 'Network error. Please try again.',
         type: 'error',
         isLoading: false,
         autoClose: 3000,
