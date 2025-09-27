@@ -2,6 +2,7 @@ package com.SRVK.Hardware.controller;
 
 import com.SRVK.Hardware.dto.AddItemRequest;
 import com.SRVK.Hardware.entity.Cart;
+import com.SRVK.Hardware.entity.CartItem;
 import com.SRVK.Hardware.service.CartService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -37,8 +38,7 @@ public class CartController {
 
     @DeleteMapping("/item/{cartItemId}")
     public ResponseEntity<String> removeItem(@PathVariable Long cartItemId) {
-        cartService.removeItem(cartItemId);
-        return ResponseEntity.ok("Item removed");
+        return ResponseEntity.ok(cartService.removeItem(cartItemId));
     }
 
     @PostMapping("/{userId}/checkout")

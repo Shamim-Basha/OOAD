@@ -106,8 +106,15 @@ public class CartService {
         return getOrCreateCart(userId);
     }
 
-    public void removeItem(Long cartItemId) {
-        cartItemRepository.deleteById(cartItemId);
+    public String removeItem(Long cartItemId) {
+
+        if(cartItemRepository.existsById(cartItemId)){
+            cartItemRepository.deleteById(cartItemId);
+            return "Item with ID: " + cartItemId + " has been successfully deleted";
+        }
+        return "Item Not Found with Id : " + cartItemId;
+
+
     }
 
     public Cart checkout(Long userId) {
