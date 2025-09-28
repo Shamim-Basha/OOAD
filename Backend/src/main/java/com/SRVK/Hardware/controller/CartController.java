@@ -1,6 +1,8 @@
 package com.SRVK.Hardware.controller;
 
 import com.SRVK.Hardware.dto.AddItemRequest;
+import com.SRVK.Hardware.dto.UpdateItemRequest;
+import com.SRVK.Hardware.dto.UpdateQuantityRequest;
 import com.SRVK.Hardware.entity.Cart;
 import com.SRVK.Hardware.entity.CartItem;
 import com.SRVK.Hardware.service.CartService;
@@ -35,6 +37,15 @@ public class CartController {
             return ResponseEntity.noContent().build();
         }
     }
+
+    @PutMapping("/item/{cartItemId}")
+    public ResponseEntity<Cart> updateItemQuantity(@PathVariable Long cartItemId,@RequestBody UpdateQuantityRequest request) {
+    try {
+        return ResponseEntity.ok(cartService.updateItemQuantity(cartItemId, request.getQuantity()));
+    } catch (Exception e) {
+        return ResponseEntity.status(500).build();
+    }
+}
 
     @DeleteMapping("/item/{cartItemId}")
     public ResponseEntity<String> removeItem(@PathVariable Long cartItemId) {
