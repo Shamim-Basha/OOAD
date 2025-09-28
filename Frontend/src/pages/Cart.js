@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaTrash, FaArrowLeft, FaShoppingCart, FaCreditCard } from 'react-icons/fa';
 import './Cart.css';
+import axios from 'axios';
 
 const Cart = () => {
   const [cartItems, setCartItems] = useState([]);
@@ -50,33 +51,13 @@ const Cart = () => {
 
   // Use POST /api/cart/add to add/update quantities.
   // Many backends treat addItem as "set quantity" or "increase by." Adjust AddItemRequest shape if needed.
-  const updateQuantity = (productId, newQuantity) => {
+  const updateQuantity = (itemid, newQuantity) => {
     if (newQuantity < 1) return;
     setError('');
     const body = {
-      userId: USER_ID,
-      productId,
       quantity: newQuantity
     };
-    fetch(`${API_BASE}/cart/item/{itemid}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(body)
-    })
-      .then(async (res) => {
-        if (!res.ok) {
-          const text = await res.text();
-          throw new Error(text || 'Failed to update quantity');
-        }
-        return res.json();
-      })
-      .then(() => loadCart())
-      .catch((err) => {
-        console.error('updateQuantity error', err);
-        setError('Failed to update quantity');
-      });
+    axios.put(`${API_BASE}/cart/item/${itemid}`, {body});
   };
 
   // Remove item uses cartItemId (not productId)
@@ -213,7 +194,7 @@ const Cart = () => {
                   <div className="quantity-selector">
                     <button
                       className="quantity-btn"
-                      onClick={() => updateQuantity(item.productId, item.quantity - 1)}
+                      onClick={() => updateQuantity(item.id, item.quantity - 1)}
                       disabled={item.quantity <= 1}
                     >
                       -
@@ -221,13 +202,13 @@ const Cart = () => {
                     <input
                       type="number"
                       value={item.quantity}
-                      onChange={(e) => updateQuantity(item.productId, parseInt(e.target.value) || 1)}
+                      onChange={(e) => updateQuantity(item.id, parseInt(e.target.value) || 1)}
                       className="quantity-input"
                       min="1"
                     />
                     <button
                       className="quantity-btn"
-                      onClick={() => updateQuantity(item.productId, item.quantity + 1)}
+                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
                     >
                       +
                     </button>
