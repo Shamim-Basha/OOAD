@@ -21,7 +21,7 @@ public class CartItem {
     private Long id;
 
     // relation to cart
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "cart_id")
     @JsonIgnore
     private Cart cart;
