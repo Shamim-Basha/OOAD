@@ -26,7 +26,7 @@ public class CartItem {
     @JsonIgnore
     private Cart cart;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "product_id")
     private Product product;
 

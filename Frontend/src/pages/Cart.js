@@ -23,18 +23,24 @@ const Cart = () => {
         return res.json();
       })
       .then((data) => {
-        const rawItems = data?.cartItems || data?.items || data?.cartItemList || [];
-        const mapped = (rawItems || []).map((ci) => ({
-          id: ci.id, // cart item id (used for delete)
-          productId: ci.product?.id ?? ci.productId ?? ci.productId,
-          name: ci.product?.name ?? ci.name,
-          price: Number(ci.unitPrice ?? ci.price ?? 0),
-          originalPrice: Number(ci.product?.originalPrice ?? ci.originalPrice ?? ci.unitPrice ?? ci.price ?? 0),
-          image: ci.product?.imageUrl ?? ci.imageUrl ?? ci.image,
-          category: ci.product?.categoryName ?? ci.categoryName ?? ci.category,
-          quantity: ci.quantity ?? 1,
-          inStock: typeof ci.available !== 'undefined' ? ci.available : true
-        }));
+        console.log('Full cart response:', data);
+        const rawItems = data?.items || data?.cartItems || data?.cartItemList || [];
+        console.log('Raw items from cart:', rawItems);
+        const mapped = (rawItems || []).map((ci) => {
+          console.log('Processing cart item:', ci);
+          return {
+            id: ci.id, // cart item id (used for delete)
+            productId: ci.product?.id ?? ci.productId ?? ci.productId,
+            name: ci.product?.name ?? ci.name,
+            price: Number(ci.unitPrice ?? ci.price ?? 0),
+            originalPrice: Number(ci.product?.originalPrice ?? ci.originalPrice ?? ci.unitPrice ?? ci.price ?? 0),
+            image: ci.product?.imageUrl ?? ci.imageUrl ?? ci.image,
+            category: ci.product?.categoryName ?? ci.categoryName ?? ci.category,
+            quantity: ci.quantity ?? 1,
+            inStock: typeof ci.available !== 'undefined' ? ci.available : true
+          };
+        });
+        console.log('Mapped cart items:', mapped);
         setCartItems(mapped);
       })
       .catch((err) => {
@@ -48,17 +54,21 @@ const Cart = () => {
     loadCart();
   }, []);
 
-  // Use POST /api/cart/add to add/update quantities.
-  // Many backends treat addItem as "set quantity" or "increase by." Adjust AddItemRequest shape if needed.
-  const updateQuantity = (productId, newQuantity) => {
-    if (newQuantity < 1) return;
+  // Update quantity for a specific cart item
+  const updateQuantity = (cartItemId, newQuantity) => {
+    console.log('updateQuantity called with:', { cartItemId, newQuantity });
+    if (newQuantity < 1) {
+      console.log('Quantity too low, returning');
+      return;
+    }
     setError('');
     const body = {
-      userId: USER_ID,
-      productId,
       quantity: newQuantity
     };
-    fetch(`${API_BASE}/cart/item/{itemid}`, {
+    console.log('Making API call to:', `${API_BASE}/cart/item/${cartItemId}`);
+    console.log('Request body:', body);
+    
+    fetch(`${API_BASE}/cart/item/${cartItemId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json'
@@ -66,13 +76,18 @@ const Cart = () => {
       body: JSON.stringify(body)
     })
       .then(async (res) => {
+        console.log('API response status:', res.status);
         if (!res.ok) {
           const text = await res.text();
+          console.error('API error response:', text);
           throw new Error(text || 'Failed to update quantity');
         }
         return res.json();
       })
-      .then(() => loadCart())
+      .then((data) => {
+        console.log('API success response:', data);
+        loadCart();
+      })
       .catch((err) => {
         console.error('updateQuantity error', err);
         setError('Failed to update quantity');
@@ -213,7 +228,7 @@ const Cart = () => {
                   <div className="quantity-selector">
                     <button
                       className="quantity-btn"
-                      onClick={() => updateQuantity(item.productId, item.quantity - 1)}
+                      onClick={() => updateQuantity(item.id, item.quantity - 1)}
                       disabled={item.quantity <= 1}
                     >
                       -
@@ -221,13 +236,13 @@ const Cart = () => {
                     <input
                       type="number"
                       value={item.quantity}
-                      onChange={(e) => updateQuantity(item.productId, parseInt(e.target.value) || 1)}
+                      onChange={(e) => updateQuantity(item.id, parseInt(e.target.value) || 1)}
                       className="quantity-input"
                       min="1"
                     />
                     <button
                       className="quantity-btn"
-                      onClick={() => updateQuantity(item.productId, item.quantity + 1)}
+                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
                     >
                       +
                     </button>
