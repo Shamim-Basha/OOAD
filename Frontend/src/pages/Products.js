@@ -105,14 +105,24 @@ const Products = () => {
     return `Rs. ${price.toLocaleString()}`;
   };
 
-  const addToCart = (product) => {
-    console.log('Added to cart:', product);
-    axios.post("http://localhost:8080/api/cart/add",
-       {
-        userId : USER_ID,
-        productId : product.id,
-        quantity : 1
-       })
+  const addToCart = async (product) => {
+    try {
+      console.log('Adding to cart:', product);
+      const payload = {
+        userId: Number(USER_ID),
+        productId: product.id,
+        quantity: 1,
+        rental: false
+      };
+      
+      const res = await axios.post("http://localhost:8080/api/cart/add", payload);
+      alert('Item added to cart successfully!');
+      console.log('Cart response:', res.data);
+    } catch (error) {
+      const message = error?.response?.data?.message || error?.message || 'Failed to add item to cart';
+      alert(message);
+      console.error('Error adding to cart:', error);
+    }
   };
 
   if (loading) {

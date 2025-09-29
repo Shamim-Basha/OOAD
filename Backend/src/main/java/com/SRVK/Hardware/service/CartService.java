@@ -5,10 +5,12 @@ import com.SRVK.Hardware.dto.CartItemResponseDTO;
 import com.SRVK.Hardware.entity.Cart;
 import com.SRVK.Hardware.entity.CartItem;
 import com.SRVK.Hardware.entity.Product;
+import com.SRVK.Hardware.entity.Tool;
 import com.SRVK.Hardware.entity.User;
 import com.SRVK.Hardware.repository.CartItemRepository;
 import com.SRVK.Hardware.repository.CartRepository;
 import com.SRVK.Hardware.repository.ProductRepository;
+import com.SRVK.Hardware.repository.ToolRepository;
 import com.SRVK.Hardware.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -27,6 +29,7 @@ public class CartService {
 
     private final CartRepository cartRepository;
     private final ProductRepository productRepository;
+    private final ToolRepository toolRepository;
     private final CartItemRepository cartItemRepository;
     private final UserRepository userRepository;
 
@@ -57,7 +60,7 @@ public class CartService {
         }
     }
 
-    //Updated addItem method
+    //Updated addItem method - supports both products and tools
     public Cart addItem(AddItemRequest request) {
         try {
             Cart cart = getOrCreateCart(request.getUserId());
@@ -66,24 +69,65 @@ public class CartService {
                 throw new RuntimeException("User not found");
             }
 
-            Product product = productRepository.findById(request.getProductId())
-                    .orElseThrow(() -> new RuntimeException("Product not found"));
+            final Product product;
+            final Tool tool;
+            final BigDecimal unitPrice;
+            final int availableStock;
 
-            // Check if product already exists in cart
-            Optional<CartItem> existingItemOpt = cart.getItems().stream()
-                    .filter(i -> i.getProduct().getId().equals(request.getProductId()))
-                    .findFirst();
-
-            BigDecimal unitPrice;
             if (request.isRental()) {
-                LocalDate start = request.getRentalStart();
-                LocalDate end = request.getRentalEnd();
-                long days = ChronoUnit.DAYS.between(start, end);
-                if (days <= 0) throw new RuntimeException("Invalid rental dates");
-                unitPrice = BigDecimal.valueOf(product.getPrice()).multiply(BigDecimal.valueOf(days));
+                // For rentals, try to find tool first, then fall back to product
+                Tool foundTool = null;
+                Product foundProduct = null;
+                try {
+                    foundTool = toolRepository.findById(request.getProductId())
+                            .orElseThrow(() -> new RuntimeException("Tool not found"));
+                } catch (Exception e) {
+                    // If tool not found, try as product
+                    foundProduct = productRepository.findById(request.getProductId())
+                            .orElseThrow(() -> new RuntimeException("Product or Tool not found"));
+                }
+                
+                tool = foundTool;
+                product = foundProduct;
+                
+                if (tool != null) {
+                    availableStock = tool.getStockQuantity();
+                    LocalDate start = request.getRentalStart();
+                    LocalDate end = request.getRentalEnd();
+                    long days = ChronoUnit.DAYS.between(start, end);
+                    if (days <= 0) throw new RuntimeException("Invalid rental dates");
+                    unitPrice = tool.getDailyRate().multiply(BigDecimal.valueOf(days));
+                } else {
+                    availableStock = product.getQuantity();
+                    LocalDate start = request.getRentalStart();
+                    LocalDate end = request.getRentalEnd();
+                    long days = ChronoUnit.DAYS.between(start, end);
+                    if (days <= 0) throw new RuntimeException("Invalid rental dates");
+                    unitPrice = BigDecimal.valueOf(product.getPrice()).multiply(BigDecimal.valueOf(days));
+                }
             } else {
+                // For purchases, find product
+                product = productRepository.findById(request.getProductId())
+                        .orElseThrow(() -> new RuntimeException("Product not found"));
+                tool = null;
+                availableStock = product.getQuantity();
                 unitPrice = BigDecimal.valueOf(product.getPrice());
             }
+
+            // Check if item already exists in cart (for same product and rental dates)
+            final Long finalProductId = request.getProductId();
+            Optional<CartItem> existingItemOpt = cart.getItems().stream()
+                    .filter(i -> {
+                        boolean sameProduct = (product != null && i.getProduct() != null && i.getProduct().getId().equals(product.getId())) ||
+                                            (tool != null && i.getToolId() != null && i.getToolId().equals(finalProductId));
+                        boolean sameRental = !request.isRental() || 
+                                            (request.getRentalStart() != null && request.getRentalEnd() != null &&
+                                             i.getRentalStart() != null && i.getRentalEnd() != null &&
+                                             i.getRentalStart().equals(request.getRentalStart()) &&
+                                             i.getRentalEnd().equals(request.getRentalEnd()));
+                        return sameProduct && sameRental;
+                    })
+                    .findFirst();
 
             if (existingItemOpt.isPresent()) {
                 //Update existing item instead of creating duplicate
@@ -91,8 +135,8 @@ public class CartService {
                 int newTotalQuantity = existingItem.getQuantity() + request.getQuantity();
                 
                 // Check stock availability for updated quantity
-                if (newTotalQuantity > product.getQuantity()) {
-                    throw new RuntimeException("Insufficient stock. Available: " + product.getQuantity() + ", Requested: " + newTotalQuantity);
+                if (newTotalQuantity > availableStock) {
+                    throw new RuntimeException("Insufficient stock. Available: " + availableStock + ", Requested: " + newTotalQuantity);
                 }
                 
                 existingItem.setQuantity(newTotalQuantity);
@@ -101,13 +145,19 @@ public class CartService {
             } else {
                 // Add new item
                 // Check stock availability for new item
-                if (request.getQuantity() > product.getQuantity()) {
-                    throw new RuntimeException("Insufficient stock. Available: " + product.getQuantity() + ", Requested: " + request.getQuantity());
+                if (request.getQuantity() > availableStock) {
+                    throw new RuntimeException("Insufficient stock. Available: " + availableStock + ", Requested: " + request.getQuantity());
                 }
                 
+                // Create CartItem with appropriate product or tool information
                 CartItem newItem = CartItem.builder()
                         .cart(cart)
                         .product(product)
+                        .toolId(tool != null ? tool.getId() : null)
+                        .toolName(tool != null ? tool.getName() : null)
+                        .toolDescription(tool != null ? tool.getDescription() : null)
+                        .toolCategory(tool != null ? tool.getCategory() : null)
+                        .toolImageUrl(tool != null ? tool.getImageUrl() : null)
                         .quantity(request.getQuantity())
                         .unitPrice(unitPrice)
                         .subtotal(unitPrice.multiply(BigDecimal.valueOf(request.getQuantity())))
