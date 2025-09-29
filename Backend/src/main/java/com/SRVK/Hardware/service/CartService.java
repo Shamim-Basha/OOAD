@@ -86,7 +86,7 @@ public class CartService {
             }
 
             if (existingItemOpt.isPresent()) {
-                // ✅ Update existing item instead of creating duplicate
+                //Update existing item instead of creating duplicate
                 CartItem existingItem = existingItemOpt.get();
                 int newTotalQuantity = existingItem.getQuantity() + request.getQuantity();
                 
@@ -99,7 +99,7 @@ public class CartService {
                 existingItem.setSubtotal(unitPrice.multiply(BigDecimal.valueOf(existingItem.getQuantity())));
                 cartItemRepository.save(existingItem);
             } else {
-                // ✅ Add new item
+                // Add new item
                 // Check stock availability for new item
                 if (request.getQuantity() > product.getQuantity()) {
                     throw new RuntimeException("Insufficient stock. Available: " + product.getQuantity() + ", Requested: " + request.getQuantity());
