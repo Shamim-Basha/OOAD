@@ -7,9 +7,12 @@ import './App.css';
 import Home from './pages/Home';
 import Services from './pages/Services';
 import ServiceDetail from './pages/ServiceDetail';
+import Products from './pages/Products';
 import Register from './pages/Register';
 import Login from './pages/Login';
 import RentalList from './Components1/RentalList';
+import Cart from './pages/Cart';
+
 
 function App() {
   return (
@@ -19,10 +22,9 @@ function App() {
         <main>
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/products" element={<Home />} />
             <Route path="/rentals" element={<Services />} />
-            <Route path="/rentals" element={<RentalList />} />
-            <Route path="/cart" element={<Home />} />
+            <Route path="/products" element={<Products />} />
+            <Route path="/cart" element={<Cart />} />
             <Route path="/contact" element={<Home />} />
             <Route path="/product/:id" element={<Home />} />
             <Route path="/service/:id" element={<ServiceDetail />} />

@@ -106,14 +106,8 @@
 
 /* About Section */
 .about-section {
+  text-align: center;
   background: #f8f9fa;
-}
-
-.about-content {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 60px;
-  align-items: center;
 }
 
 .about-text h2 {
@@ -212,10 +206,6 @@
     align-items: center;
   }
   
-  .about-content {
-    grid-template-columns: 1fr;
-    gap: 40px;
-  }
   
   .about-stats {
     grid-template-columns: 1fr;
