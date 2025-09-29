@@ -112,7 +112,7 @@ const Register = () => {
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-row">
             <div className="form-group">
-              <label htmlFor="firstName">First Name</label>
+              <label htmlFor="firstName">First Name *</label>
               <div className="input-group">
                 <FaUser className="input-icon" />
                 <input
@@ -128,7 +128,7 @@ const Register = () => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="lastName">Last Name</label>
+              <label htmlFor="lastName">Last Name *</label>
               <div className="input-group">
                 <FaUser className="input-icon" />
                 <input
@@ -145,7 +145,7 @@ const Register = () => {
           </div>
 
           <div className="form-group">
-            <label htmlFor="username">Username</label>
+            <label htmlFor="username">Username *</label>
             <div className="input-group">
               <FaUser className="input-icon" />
               <input
@@ -161,7 +161,7 @@ const Register = () => {
           </div>
 
           <div className="form-group">
-            <label htmlFor="email">Email</label>
+            <label htmlFor="email">Email *</label>
             <div className="input-group">
               <FaEnvelope className="input-icon" />
               <input
@@ -193,7 +193,7 @@ const Register = () => {
 
           <div className="form-row">
             <div className="form-group">
-              <label htmlFor="password">Password</label>
+              <label htmlFor="password">Password *</label>
               <div className="input-group">
                 <FaLock className="input-icon" />
                 <input
@@ -216,7 +216,7 @@ const Register = () => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="confirmPassword">Confirm Password</label>
+              <label htmlFor="confirmPassword">Confirm Password *</label>
               <div className="input-group">
                 <FaLock className="input-icon" />
                 <input
@@ -273,6 +273,7 @@ const Register = () => {
             <div className="form-group">
               <label htmlFor="postalCode">Postal Code</label>
               <div className="input-group">
+                <FaMapMarker className="input-icon" />
                 <input
                   type="text"
                   id="postalCode"

@@ -1,8 +1,9 @@
 # OOAD
+
 E-commerce webapp project using Java Spring-boot and React.js
 
 - **Frontend**: React.js
-- **Backend**: Spring Boot
+- **Backend**: Spring-Boot
 
 ---
 
@@ -21,7 +22,7 @@ project-root/
 │   ├── pom.xml
 │   └── ...
 │
-└── README.md          
+└── README.md
 ```
 
 ---
@@ -31,10 +32,12 @@ project-root/
 Make sure you have the following installed:
 
 ### Backend (Spring Boot)
+
 - Java 24 (17+)
 - (Optional) IDE: IntelliJ IDEA / Eclipse
 
 ### Frontend (React.js)
+
 - Node.js
 - npm or yarn
 
@@ -61,9 +64,11 @@ mvn clean install
 ```
 
 ### ▶️ Run the Backend
+
 ```
 ./mvnw spring-boot:run
 ```
+
 - The backend will run at: `http://localhost:8080`
 
 ---
