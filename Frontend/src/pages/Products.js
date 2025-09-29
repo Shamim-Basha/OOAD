@@ -14,7 +14,8 @@ const Products = () => {
   const [priceRange, setPriceRange] = useState([0, 100000]);
   const [sortBy, setSortBy] = useState('name');
 
-  const USER_ID = localStorage.getItem('userId') || 1;
+  const USER = localStorage.getItem('user');
+  const USER_ID = USER? JSON.parse(USER)["id"] : 1;
 
   const categories = [
     { value: 'all', label: 'All Categories' },

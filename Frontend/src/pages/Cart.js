@@ -10,7 +10,8 @@ const Cart = () => {
   const [error, setError] = useState('');
 
   const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
-  const USER_ID = localStorage.getItem('userId') || 1;
+  const USER = localStorage.getItem('user');
+  const USER_ID = USER? JSON.parse(USER)["id"] : 1;
 
   const loadCart = () => {
     setLoading(true);
