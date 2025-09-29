@@ -30,6 +30,13 @@ public class CartItem {
     @JoinColumn(name = "product_id")
     private Product product;
 
+    // Tool support - store tool information directly since we can't easily modify the schema
+    private Long toolId;
+    private String toolName;
+    private String toolDescription;
+    private String toolCategory;
+    private String toolImageUrl;
+
     private int quantity;
 
     private BigDecimal unitPrice;

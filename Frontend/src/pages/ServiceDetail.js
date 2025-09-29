@@ -12,6 +12,37 @@ const ServiceDetail = () => {
   const [rentalDays, setRentalDays] = useState(1);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+
+  // Calculate rental days from selected dates
+  useEffect(() => {
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      const timeDiff = end.getTime() - start.getTime();
+      const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1; // +1 to include both start and end days
+      
+      if (daysDiff > 0) {
+        setRentalDays(daysDiff);
+      }
+    }
+  }, [startDate, endDate]);
+
+  // Update end date when days selector is used manually
+  const updateDatesFromDays = (newDays) => {
+    if (startDate && !endDate) {
+      // If we have a start date but no end date, calculate end date
+      const start = new Date(startDate);
+      const end = new Date(start);
+      end.setDate(start.getDate() + newDays - 1); // -1 because we include both start and end days
+      setEndDate(end.toISOString().split('T')[0]);
+    }
+  };
+
+  // Clear dates to allow manual days selection
+  const clearDates = () => {
+    setStartDate('');
+    setEndDate('');
+  };
   const [activeTab, setActiveTab] = useState('details');
 
   const navigate = useNavigate();
@@ -162,17 +193,22 @@ const ServiceDetail = () => {
     try {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       const userId = Number(user?.id || 1);
+      
+      // Add rental item to cart instead of creating rental directly
       const payload = {
         userId,
-        toolId: Number(service.id),
-        startDate, // yyyy-mm-dd
-        endDate,   // yyyy-mm-dd
-        quantity: 1
+        productId: Number(service.id), // Use service.id as productId for tools
+        quantity: 1,
+        rental: true,
+        rentalStart: startDate,
+        rentalEnd: endDate
       };
-      const res = await axios.post('http://localhost:8080/api/rentals', payload);
-      navigate('/cart', { state: { rental: res.data, fees } });
+      
+      const res = await axios.post('http://localhost:8080/api/cart/add', payload);
+      alert('Item added to cart successfully!');
+      navigate('/cart');
     } catch (e) {
-      const message = e?.response?.data?.message || e?.message || 'Failed to create rental';
+      const message = e?.response?.data?.message || e?.message || 'Failed to add item to cart';
       alert(message);
     }
   };
@@ -277,7 +313,14 @@ const ServiceDetail = () => {
                   <input
                     type="date"
                     value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
+                    onChange={(e) => {
+                      const selectedEndDate = e.target.value;
+                      if (startDate && selectedEndDate <= startDate) {
+                        alert('End date must be after start date');
+                        return;
+                      }
+                      setEndDate(selectedEndDate);
+                    }}
                     className="form-input"
                     min={startDate || new Date().toISOString().split('T')[0]}
                   />
@@ -289,7 +332,11 @@ const ServiceDetail = () => {
                 <div className="days-selector">
                   <button
                     className="days-btn"
-                    onClick={() => setRentalDays(Math.max(1, rentalDays - 1))}
+                    onClick={() => {
+                      const newDays = Math.max(1, rentalDays - 1);
+                      setRentalDays(newDays);
+                      updateDatesFromDays(newDays);
+                    }}
                     disabled={rentalDays <= 1}
                   >
                     -
@@ -297,19 +344,55 @@ const ServiceDetail = () => {
                   <input
                     type="number"
                     value={rentalDays}
-                    onChange={(e) => setRentalDays(Math.max(1, parseInt(e.target.value) || 1))}
+                    onChange={(e) => {
+                      const newDays = Math.max(1, parseInt(e.target.value) || 1);
+                      setRentalDays(newDays);
+                      updateDatesFromDays(newDays);
+                    }}
                     className="days-input"
                     min="1"
                     max="30"
+                    readOnly={startDate && endDate}
+                    style={{ 
+                      backgroundColor: startDate && endDate ? '#f8f9fa' : 'transparent',
+                      cursor: startDate && endDate ? 'not-allowed' : 'text'
+                    }}
                   />
                   <button
                     className="days-btn"
-                    onClick={() => setRentalDays(Math.min(30, rentalDays + 1))}
+                    onClick={() => {
+                      const newDays = Math.min(30, rentalDays + 1);
+                      setRentalDays(newDays);
+                      updateDatesFromDays(newDays);
+                    }}
                     disabled={rentalDays >= 30}
                   >
                     +
                   </button>
                 </div>
+                {startDate && endDate && (
+                  <div style={{ marginTop: '4px' }}>
+                    <small style={{ color: '#666', fontSize: '12px' }}>
+                      Days calculated from selected dates
+                    </small>
+                    <button
+                      type="button"
+                      onClick={clearDates}
+                      style={{
+                        marginLeft: '8px',
+                        padding: '2px 8px',
+                        fontSize: '11px',
+                        backgroundColor: 'transparent',
+                        border: '1px solid #d4af37',
+                        color: '#d4af37',
+                        borderRadius: '4px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Clear Dates
+                    </button>
+                  </div>
+                )}
               </div>
 
               <div className="rental-summary">
@@ -319,7 +402,7 @@ const ServiceDetail = () => {
                 </div>
                 <div className="summary-item">
                   <span>Number of Days:</span>
-                  <span>{rentalDays}</span>
+                  <span>{rentalDays} {rentalDays === 1 ? 'day' : 'days'}</span>
                 </div>
                 <div className="summary-item">
                   <span>Subtotal:</span>

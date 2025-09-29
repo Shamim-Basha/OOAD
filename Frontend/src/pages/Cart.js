@@ -31,14 +31,17 @@ const Cart = () => {
           console.log('Processing cart item:', ci);
           return {
             id: ci.id, // cart item id (used for delete)
-            productId: ci.product?.id ?? ci.productId ?? ci.productId,
-            name: ci.product?.name ?? ci.name,
+            productId: ci.product?.id ?? ci.toolId ?? ci.productId,
+            name: ci.product?.name ?? ci.toolName ?? ci.name,
             price: Number(ci.unitPrice ?? ci.price ?? 0),
             originalPrice: Number(ci.product?.originalPrice ?? ci.originalPrice ?? ci.unitPrice ?? ci.price ?? 0),
-            image: ci.product?.imageUrl ?? ci.imageUrl ?? ci.image,
-            category: ci.product?.categoryName ?? ci.categoryName ?? ci.category,
+            image: ci.product?.imageUrl ?? ci.toolImageUrl ?? ci.imageUrl ?? ci.image,
+            category: ci.product?.category ?? ci.toolCategory ?? ci.categoryName ?? ci.category,
             quantity: ci.quantity ?? 1,
-            inStock: typeof ci.available !== 'undefined' ? ci.available : true
+            inStock: typeof ci.available !== 'undefined' ? ci.available : true,
+            isRental: ci.rental || false,
+            rentalStart: ci.rentalStart,
+            rentalEnd: ci.rentalEnd
           };
         });
         console.log('Mapped cart items:', mapped);
@@ -217,6 +220,13 @@ const Cart = () => {
                 <div className="item-details">
                   <h3 className="item-name">{item.name}</h3>
                   <p className="item-category">{item.category}</p>
+                  {item.isRental && (
+                    <div className="rental-info">
+                      <p className="rental-dates">
+                        Rental Period: {item.rentalStart} to {item.rentalEnd}
+                      </p>
+                    </div>
+                  )}
                   <div className="item-price">
                     <span className="current-price">{formatPrice(item.price)}</span>
                     {item.originalPrice > item.price && (
