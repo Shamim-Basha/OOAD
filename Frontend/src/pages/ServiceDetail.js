@@ -192,7 +192,8 @@ const ServiceDetail = () => {
 
     try {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
-      const userId = Number(user?.id || 1);
+      const USER = localStorage.getItem('user');
+      const userId = USER? JSON.parse(USER)["id"] : 1;
       
       // Add rental item to cart instead of creating rental directly
       const payload = {
