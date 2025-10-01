@@ -2,10 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaTrash, FaArrowLeft, FaShoppingCart, FaCreditCard } from 'react-icons/fa';
 import './Cart.css';
-import axios from 'axios';
 
 const Cart = () => {
-  const [cartItems, setCartItems] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [rentals, setRentals] = useState([]);
+  const [selectedProducts, setSelectedProducts] = useState({}); // key: `${userId}-${productId}`
+  const [selectedRentals, setSelectedRentals] = useState({}); // key: `${userId}-${rentalId}`
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -25,28 +27,33 @@ const Cart = () => {
         return res.json();
       })
       .then((data) => {
-        console.log('Full cart response:', data);
-        const rawItems = data?.items || data?.cartItems || data?.cartItemList || [];
-        console.log('Raw items from cart:', rawItems);
-        const mapped = (rawItems || []).map((ci) => {
-          console.log('Processing cart item:', ci);
-          return {
-            id: ci.id, // cart item id (used for delete)
-            productId: ci.product?.id ?? ci.toolId ?? ci.productId,
-            name: ci.product?.name ?? ci.toolName ?? ci.name,
-            price: Number(ci.unitPrice ?? ci.price ?? 0),
-            originalPrice: Number(ci.product?.originalPrice ?? ci.originalPrice ?? ci.unitPrice ?? ci.price ?? 0),
-            image: ci.product?.imageUrl ?? ci.toolImageUrl ?? ci.imageUrl ?? ci.image,
-            category: ci.product?.category ?? ci.toolCategory ?? ci.categoryName ?? ci.category,
-            quantity: ci.quantity ?? 1,
-            inStock: typeof ci.available !== 'undefined' ? ci.available : true,
-            isRental: ci.rental || false,
-            rentalStart: ci.rentalStart,
-            rentalEnd: ci.rentalEnd
-          };
-        });
-        console.log('Mapped cart items:', mapped);
-        setCartItems(mapped);
+        const prod = (data.products || []).map(p => ({
+          userId: p.userId,
+          productId: p.productId,
+          name: p.name,
+          unitPrice: Number(p.unitPrice || 0),
+          quantity: p.quantity,
+          subtotal: Number(p.subtotal || 0)
+        }));
+        const rent = (data.rentals || []).map(r => ({
+          userId: r.userId,
+          rentalId: r.rentalId,
+          name: r.name,
+          dailyRate: Number(r.dailyRate || 0),
+          quantity: r.quantity,
+          rentalStart: r.rentalStart,
+          rentalEnd: r.rentalEnd,
+          subtotal: Number(r.subtotal || 0)
+        }));
+        setProducts(prod);
+        setRentals(rent);
+        // default select all
+        const sp = {};
+        prod.forEach(p => { sp[`${p.userId}-${p.productId}`] = true; });
+        const sr = {};
+        rent.forEach(r => { sr[`${r.userId}-${r.rentalId}`] = true; });
+        setSelectedProducts(sp);
+        setSelectedRentals(sr);
       })
       .catch((err) => {
         console.error('loadCart error', err);
@@ -59,77 +66,61 @@ const Cart = () => {
     loadCart();
   }, []);
 
-  // Update quantity for a specific cart item
-  const updateQuantity = (cartItemId, newQuantity) => {
-    console.log('updateQuantity called with:', { cartItemId, newQuantity });
-    if (newQuantity < 1) {
-      console.log('Quantity too low, returning');
+  // Update product quantity
+  const updateProductQty = (userId, productId, newQuantity) => {
+    if (newQuantity < 1) return;
+    setError('');
+    fetch(`${API_BASE}/cart/product/${userId}/${productId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ quantity: newQuantity })
+    })
+      .then(async (res) => { if (!res.ok) { throw new Error(await res.text()); } })
+      .then(() => loadCart())
+      .catch((err) => { console.error(err); setError('Failed to update product'); });
+  };
+
+  // Update rental quantity or dates
+  const updateRental = (userId, rentalId, payload) => {
+    if (payload.quantity && payload.quantity < 1) return;
+    if (payload.rentalStart && payload.rentalEnd && payload.rentalStart >= payload.rentalEnd) {
+      setError('Rental start must be before end');
       return;
     }
     setError('');
-    const body = {
-      quantity: newQuantity
-    };
-    console.log('Making API call to:', `${API_BASE}/cart/item/${cartItemId}`);
-    console.log('Request body:', body);
-    
-    fetch(`${API_BASE}/cart/item/${cartItemId}`, {
+    fetch(`${API_BASE}/cart/rental/${userId}/${rentalId}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(body)
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
     })
-      .then(async (res) => {
-        console.log('API response status:', res.status);
-        if (!res.ok) {
-          const text = await res.text();
-          console.error('API error response:', text);
-          throw new Error(text || 'Failed to update quantity');
-        }
-        return res.json();
-      })
-      .then((data) => {
-        console.log('API success response:', data);
-        loadCart();
-      })
-      .catch((err) => {
-        console.error('updateQuantity error', err);
-        setError('Failed to update quantity');
-      });
+      .then(async (res) => { if (!res.ok) { throw new Error(await res.text()); } })
+      .then(() => loadCart())
+      .catch((err) => { console.error(err); setError('Failed to update rental'); });
   };
 
-  // Remove item uses cartItemId (not productId)
-  const removeItem = (cartItemId) => {
+  const removeProduct = (userId, productId) => {
     setError('');
-    fetch(`${API_BASE}/cart/item/${encodeURIComponent(cartItemId)}`, {
-      method: 'DELETE'
-    })
-      .then(async (res) => {
-        if (!res.ok) {
-          const text = await res.text();
-          throw new Error(text || 'Failed to remove item');
-        }
-        return res.text(); // backend returns "Item removed"
-      })
+    fetch(`${API_BASE}/cart/product/${userId}/${productId}`, { method: 'DELETE' })
+      .then(async (res) => { if (!res.ok) { throw new Error(await res.text()); } })
       .then(() => loadCart())
-      .catch((err) => {
-        console.error('removeItem error', err);
-        setError('Failed to remove item');
-      });
+      .catch((err) => { console.error(err); setError('Failed to remove product'); });
+  };
+
+  const removeRental = (userId, rentalId) => {
+    setError('');
+    fetch(`${API_BASE}/cart/rental/${userId}/${rentalId}`, { method: 'DELETE' })
+      .then(async (res) => { if (!res.ok) { throw new Error(await res.text()); } })
+      .then(() => loadCart())
+      .catch((err) => { console.error(err); setError('Failed to remove rental'); });
   };
 
   const calculateSubtotal = () => {
-    return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+    const prodTotal = products.reduce((t, p) => t + (p.unitPrice * p.quantity), 0);
+    const rentTotal = rentals.reduce((t, r) => t + r.subtotal, 0);
+    return prodTotal + rentTotal;
   };
 
-  const calculateDiscount = () => {
-    return cartItems.reduce((total, item) => {
-      const originalTotal = item.originalPrice * item.quantity;
-      const currentTotal = item.price * item.quantity;
-      return total + (originalTotal - currentTotal);
-    }, 0);
-  };
+  const calculateDiscount = () => 0;
 
   const calculateTax = () => {
     return calculateSubtotal() * 0.15; // 15% tax
@@ -148,8 +139,29 @@ const Cart = () => {
   // Checkout: call backend then navigate to confirmation / checkout flow
   const handleCheckout = () => {
     setError('');
+    const selectedProductsArr = Object.entries(selectedProducts)
+      .filter(([,v]) => v)
+      .map(([k]) => {
+        const [, productId] = k.split('-');
+        return { userId: Number(USER_ID), productId: Number(productId), rentalId: null };
+      });
+    const selectedRentalsArr = Object.entries(selectedRentals)
+      .filter(([,v]) => v)
+      .map(([k]) => {
+        const [, rentalId] = k.split('-');
+        return { userId: Number(USER_ID), productId: null, rentalId: Number(rentalId) };
+      });
+    const body = {
+      userId: Number(USER_ID),
+      selectedProducts: selectedProductsArr,
+      selectedRentals: selectedRentalsArr,
+      paymentMethod: 'CARD',
+      paymentDetails: 'mock'
+    };
     fetch(`${API_BASE}/cart/${USER_ID}/checkout`, {
-      method: 'POST'
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
     })
       .then(async (res) => {
         if (!res.ok) {
@@ -159,8 +171,7 @@ const Cart = () => {
         return res.json();
       })
       .then((data) => {
-        // If backend returns a Cart or order info, you can parse it here.
-        // For now, navigate to checkout page (or order confirmation).
+        console.log('Order success', data);
         navigate('/checkout');
       })
       .catch((err) => {
@@ -179,7 +190,7 @@ const Cart = () => {
     );
   }
 
-  if (cartItems.length === 0) {
+  if (products.length === 0 && rentals.length === 0) {
     return (
       <div className="cart-page">
         <div className="container">
@@ -206,75 +217,87 @@ const Cart = () => {
         </div>
 
         <div className="cart-content">
-          {/* Cart Items */}
+          {/* Products to Purchase */}
           <div className="cart-items">
             <div className="cart-items-header">
-              <h2>Cart Items ({cartItems.length})</h2>
+              <h2>Products to Purchase ({products.length})</h2>
             </div>
-
-            {cartItems.map(item => (
-              <div key={item.id} className="cart-item">
-                <div className="item-image">
-                  <img src={item.image} alt={item.name} />
-                </div>
-                
-                <div className="item-details">
-                  <h3 className="item-name">{item.name}</h3>
-                  <p className="item-category">{item.category}</p>
-                  {item.isRental && (
-                    <div className="rental-info">
-                      <p className="rental-dates">
-                        Rental Period: {item.rentalStart} to {item.rentalEnd}
-                      </p>
-                    </div>
-                  )}
+            {products.map(p => (
+              <div key={`p-${p.userId}-${p.productId}`} className="cart-item">
+                <div className="item-details" style={{ flex: 2 }}>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={!!selectedProducts[`${p.userId}-${p.productId}`]}
+                      onChange={(e) => setSelectedProducts({
+                        ...selectedProducts,
+                        [`${p.userId}-${p.productId}`]: e.target.checked
+                      })}
+                      style={{ marginRight: 8 }}
+                    />
+                    <span className="item-name">{p.name}</span>
+                  </label>
                   <div className="item-price">
-                    <span className="current-price">{formatPrice(item.price)}</span>
-                    {item.originalPrice > item.price && (
-                      <span className="original-price">{formatPrice(item.originalPrice)}</span>
-                    )}
+                    <span className="current-price">{formatPrice(p.unitPrice)}</span>
                   </div>
                 </div>
-
                 <div className="item-quantity">
                   <div className="quantity-selector">
-                    <button
-                      className="quantity-btn"
-                      onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                      disabled={item.quantity <= 1}
-                    >
-                      -
-                    </button>
-                    <input
-                      type="number"
-                      value={item.quantity}
-                      onChange={(e) => updateQuantity(item.id, parseInt(e.target.value) || 1)}
-                      className="quantity-input"
-                      min="1"
-                    />
-                    <button
-                      className="quantity-btn"
-                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                    >
-                      +
-                    </button>
+                    <button className="quantity-btn" onClick={() => updateProductQty(p.userId, p.productId, p.quantity - 1)} disabled={p.quantity <= 1}>-</button>
+                    <input type="number" value={p.quantity} onChange={(e) => updateProductQty(p.userId, p.productId, parseInt(e.target.value) || 1)} className="quantity-input" min="1" />
+                    <button className="quantity-btn" onClick={() => updateProductQty(p.userId, p.productId, p.quantity + 1)}>+</button>
                   </div>
                 </div>
-
                 <div className="item-total">
-                  <span className="total-price">{formatPrice(item.price * item.quantity)}</span>
-                  {item.originalPrice > item.price && (
-                    <span className="savings">
-                      Save {formatPrice((item.originalPrice - item.price) * item.quantity)}
-                    </span>
-                  )}
+                  <span className="total-price">{formatPrice(p.unitPrice * p.quantity)}</span>
                 </div>
+                <button className="remove-btn" onClick={() => removeProduct(p.userId, p.productId)} title="Remove item">
+                  <FaTrash />
+                </button>
+              </div>
+            ))}
+          </div>
 
-                <button
-                  className="remove-btn"
-                  onClick={() => removeItem(item.id)} // pass cartItemId
-                  title="Remove item"
-                >
+          {/* Tools to Rent */}
+          <div className="cart-items" style={{ marginTop: 24 }}>
+            <div className="cart-items-header">
+              <h2>Tools to Rent ({rentals.length})</h2>
+            </div>
+            {rentals.map(r => (
+              <div key={`r-${r.userId}-${r.rentalId}`} className="cart-item">
+                <div className="item-details" style={{ flex: 2 }}>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={!!selectedRentals[`${r.userId}-${r.rentalId}`]}
+                      onChange={(e) => setSelectedRentals({
+                        ...selectedRentals,
+                        [`${r.userId}-${r.rentalId}`]: e.target.checked
+                      })}
+                      style={{ marginRight: 8 }}
+                    />
+                    <span className="item-name">{r.name}</span>
+                  </label>
+                  <div className="item-price">
+                    <span className="current-price">{formatPrice(r.dailyRate)} / day</span>
+                  </div>
+                  <div className="rental-dates" style={{ marginTop: 8 }}>
+                    <input type="date" value={r.rentalStart || ''} onChange={(e) => updateRental(r.userId, r.rentalId, { rentalStart: e.target.value, rentalEnd: r.rentalEnd, quantity: r.quantity })} />
+                    <span style={{ margin: '0 8px' }}>to</span>
+                    <input type="date" value={r.rentalEnd || ''} onChange={(e) => updateRental(r.userId, r.rentalId, { rentalStart: r.rentalStart, rentalEnd: e.target.value, quantity: r.quantity })} />
+                  </div>
+                </div>
+                <div className="item-quantity">
+                  <div className="quantity-selector">
+                    <button className="quantity-btn" onClick={() => updateRental(r.userId, r.rentalId, { quantity: r.quantity - 1, rentalStart: r.rentalStart, rentalEnd: r.rentalEnd })} disabled={r.quantity <= 1}>-</button>
+                    <input type="number" value={r.quantity} onChange={(e) => updateRental(r.userId, r.rentalId, { quantity: parseInt(e.target.value) || 1, rentalStart: r.rentalStart, rentalEnd: r.rentalEnd })} className="quantity-input" min="1" />
+                    <button className="quantity-btn" onClick={() => updateRental(r.userId, r.rentalId, { quantity: r.quantity + 1, rentalStart: r.rentalStart, rentalEnd: r.rentalEnd })}>+</button>
+                  </div>
+                </div>
+                <div className="item-total">
+                  <span className="total-price">{formatPrice(r.subtotal)}</span>
+                </div>
+                <button className="remove-btn" onClick={() => removeRental(r.userId, r.rentalId)} title="Remove item">
                   <FaTrash />
                 </button>
               </div>
