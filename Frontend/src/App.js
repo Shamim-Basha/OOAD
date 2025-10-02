@@ -10,8 +10,8 @@ import ServiceDetail from './pages/ServiceDetail';
 import Products from './pages/Products';
 import Register from './pages/Register';
 import Login from './pages/Login';
-import RentalList from './Components1/RentalList';
 import Cart from './pages/Cart';
+import UserProfile from './pages/UserProfile'
 
 
 function App() {
@@ -31,6 +31,7 @@ function App() {
             <Route path="/rental/:id" element={<ServiceDetail />} />
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/profile" element={<UserProfile/>}/>
           </Routes>
         </main>
         <Footer />
