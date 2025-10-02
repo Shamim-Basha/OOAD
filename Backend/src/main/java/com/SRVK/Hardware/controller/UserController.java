@@ -21,13 +21,13 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody RegisterDTO dto){
+    public ResponseEntity<ResponseDTO> register(@RequestBody RegisterDTO dto){
         try{
-            userService.register(dto);
-            return ResponseEntity.ok("Message: User registered Successfully!");
+            return ResponseEntity.ok(userService.register(dto));
         }
         catch (Exception e){
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Error: " + e.getMessage());
+            ResponseDTO rd = ResponseDTO.builder().message(e.getMessage()).build();
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(rd);
         }
     }
 

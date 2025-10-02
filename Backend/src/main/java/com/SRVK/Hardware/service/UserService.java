@@ -46,13 +46,14 @@ public class UserService {
                 .build();
     }
 
-    public void register(RegisterDTO registerDTO){
+    public ResponseDTO register(RegisterDTO registerDTO){
         if (userRepository.existsByUsername(registerDTO.getUsername())) { throw new RuntimeException("Username already exists");};
         if (userRepository.existsByEmail(registerDTO.getEmail())) { throw new RuntimeException("Email is already in use");};
 
         User newUser = toUser(registerDTO);
 
-        userRepository.save(newUser);
+        User user = userRepository.save(newUser);
+        return toResponseDTO(user);
     }
 
     public ResponseDTO login(LoginDTO loginDTO){

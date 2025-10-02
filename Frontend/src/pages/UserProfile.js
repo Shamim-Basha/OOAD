@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './UserProfile.css';
+import { useNavigate } from 'react-router-dom';
 
 const UserProfile = () => {
   const [user, setUser] = useState(null);
@@ -11,8 +12,13 @@ const UserProfile = () => {
   // Replace with actual user ID from auth context or localStorage
   const userId = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')).id : null;
 
+  const navigate = useNavigate();
+
   useEffect(() => {
-    if (!userId) return;
+    if (!userId){
+      navigate('/login');
+      return;
+    };
     fetch(`http://localhost:8080/api/users/${userId}`)
       .then(res => res.json())
       .then(data => {
