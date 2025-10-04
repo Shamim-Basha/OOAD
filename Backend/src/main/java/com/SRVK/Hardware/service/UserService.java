@@ -81,8 +81,18 @@ public class UserService {
         try{
             User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not Found with Id: " + id));
 
-            if (dto.getUsername() != null) user.setUsername(dto.getUsername());
-            if (dto.getEmail() != null) user.setEmail(dto.getEmail());
+            if (dto.getUsername()!= null && userRepository.existsByUsername(dto.getUsername())){
+                throw new RuntimeException("Username already Exist");
+            }else{
+                user.setUsername(dto.getUsername());
+            }
+
+            if (dto.getEmail() != null && userRepository.existsByEmail(dto.getEmail())){
+                throw new RuntimeException("Email already Exist");
+            }else{
+                user.setEmail(dto.getEmail());
+            }
+
             if (dto.getFirstName() != null) user.setFirstName(dto.getFirstName());
             if (dto.getLastName() != null) user.setLastName(dto.getLastName());
             if (dto.getPhone() != null) user.setPhone(dto.getPhone());
@@ -93,8 +103,8 @@ public class UserService {
 
             userRepository.save(user);
 
-        } catch (RuntimeException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            throw e;
         }
     }
 
