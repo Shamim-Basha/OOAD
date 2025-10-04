@@ -77,19 +77,24 @@ public class UserService {
         }
     }
 
-    public void update(Long id, RegisterDTO dto){
-        try{
-            User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not Found with Id: " + id));
+    public void update(Long id, RegisterDTO dto) {
+        try {
+            User user = userRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("User not found with Id: " + id));
 
-            if (dto.getUsername()!= null && userRepository.existsByUsername(dto.getUsername())){
-                throw new RuntimeException("Username already Exist");
-            }else{
+            // Check for username duplication (excluding current user)
+            if (dto.getUsername() != null && !dto.getUsername().equals(user.getUsername())) {
+                if (userRepository.existsByUsernameAndIdNot(dto.getUsername(), id)) {
+                    throw new RuntimeException("Username already exists");
+                }
                 user.setUsername(dto.getUsername());
             }
 
-            if (dto.getEmail() != null && userRepository.existsByEmail(dto.getEmail())){
-                throw new RuntimeException("Email already Exist");
-            }else{
+            // Check for email duplication (excluding current user)
+            if (dto.getEmail() != null && !dto.getEmail().equals(user.getEmail())) {
+                if (userRepository.existsByEmailAndIdNot(dto.getEmail(), id)) {
+                    throw new RuntimeException("Email already exists");
+                }
                 user.setEmail(dto.getEmail());
             }
 
@@ -107,6 +112,7 @@ public class UserService {
             throw e;
         }
     }
+
 
     public void delete(Long id){
         try{
