@@ -46,13 +46,14 @@ public class UserService {
                 .build();
     }
 
-    public void register(RegisterDTO registerDTO){
+    public ResponseDTO register(RegisterDTO registerDTO){
         if (userRepository.existsByUsername(registerDTO.getUsername())) { throw new RuntimeException("Username already exists");};
         if (userRepository.existsByEmail(registerDTO.getEmail())) { throw new RuntimeException("Email is already in use");};
 
         User newUser = toUser(registerDTO);
 
-        userRepository.save(newUser);
+        User user = userRepository.save(newUser);
+        return toResponseDTO(user);
     }
 
     public ResponseDTO login(LoginDTO loginDTO){
@@ -76,12 +77,27 @@ public class UserService {
         }
     }
 
-    public void update(Long id, RegisterDTO dto){
-        try{
-            User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not Found with Id: " + id));
+    public void update(Long id, RegisterDTO dto) {
+        try {
+            User user = userRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("User not found with Id: " + id));
 
-            if (dto.getUsername() != null) user.setUsername(dto.getUsername());
-            if (dto.getEmail() != null) user.setEmail(dto.getEmail());
+            // Check for username duplication (excluding current user)
+            if (dto.getUsername() != null && !dto.getUsername().equals(user.getUsername())) {
+                if (userRepository.existsByUsernameAndIdNot(dto.getUsername(), id)) {
+                    throw new RuntimeException("Username already exists");
+                }
+                user.setUsername(dto.getUsername());
+            }
+
+            // Check for email duplication (excluding current user)
+            if (dto.getEmail() != null && !dto.getEmail().equals(user.getEmail())) {
+                if (userRepository.existsByEmailAndIdNot(dto.getEmail(), id)) {
+                    throw new RuntimeException("Email already exists");
+                }
+                user.setEmail(dto.getEmail());
+            }
+
             if (dto.getFirstName() != null) user.setFirstName(dto.getFirstName());
             if (dto.getLastName() != null) user.setLastName(dto.getLastName());
             if (dto.getPhone() != null) user.setPhone(dto.getPhone());
@@ -92,10 +108,11 @@ public class UserService {
 
             userRepository.save(user);
 
-        } catch (RuntimeException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            throw e;
         }
     }
+
 
     public void delete(Long id){
         try{

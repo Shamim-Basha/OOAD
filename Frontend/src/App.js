@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 
@@ -10,31 +10,51 @@ import ServiceDetail from './pages/ServiceDetail';
 import Products from './pages/Products';
 import Register from './pages/Register';
 import Login from './pages/Login';
-import RentalList from './Components1/RentalList';
 import Cart from './pages/Cart';
+import UserProfile from './pages/UserProfile'
+import AdminSidebar from './components/AdminSidebar';
+import AdminDashboard from "./pages/Admin/AdminDashboard"
+import UserManagement from './pages/Admin/UserManagement';
+import ProductManagement from './pages/Admin/ProductManagement';
+import ToolManagement from './pages/Admin/ToolManagement';
 
+
+
+function AppContent() {
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith('/admin');
+  return (
+    <div className="App">
+      {!isAdminRoute && <Navbar />}
+      {isAdminRoute && <AdminSidebar />}
+      <main>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/rentals" element={<Services />} />
+          <Route path="/products" element={<Products />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/contact" element={<Home />} />
+          <Route path="/product/:id" element={<Home />} />
+          <Route path="/service/:id" element={<ServiceDetail />} />
+          <Route path="/rental/:id" element={<ServiceDetail />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/profile" element={<UserProfile/>}/>
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/users" element={<UserManagement />} />
+          <Route path="/admin/products" element={<ProductManagement />} />
+          <Route path="/admin/tools" element={<ToolManagement />} />
+        </Routes>
+      </main>
+      {!isAdminRoute && <Footer />}
+    </div>
+  );
+}
 
 function App() {
   return (
     <BrowserRouter>
-      <div className="App">
-        <Navbar />
-        <main>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/rentals" element={<Services />} />
-            <Route path="/products" element={<Products />} />
-            <Route path="/cart" element={<Cart />} />
-            <Route path="/contact" element={<Home />} />
-            <Route path="/product/:id" element={<Home />} />
-            <Route path="/service/:id" element={<ServiceDetail />} />
-            <Route path="/rental/:id" element={<ServiceDetail />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/login" element={<Login />} />
-          </Routes>
-        </main>
-        <Footer />
-      </div>
+      <AppContent />
     </BrowserRouter>
   );
 }
