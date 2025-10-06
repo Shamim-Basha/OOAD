@@ -23,7 +23,7 @@ public class CheckoutService {
     private final ProductCartRepository productCartRepository;
     private final RentalCartRepository rentalCartRepository;
     private final ProductRepository productRepository;
-    private final RentalRepository rentalRepository;
+    private final ToolRepository toolRepository;
     private final UserRepository userRepository;
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
@@ -45,14 +45,15 @@ public class CheckoutService {
                 ProductCart pc = productCartRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Product cart item not found"));
                 Product product = pc.getProduct();
                 if (pc.getQuantity() <= 0) throw new IllegalArgumentException("Quantity must be > 0");
-                if (product.getStockQuantity() < pc.getQuantity()) throw new IllegalArgumentException("Insufficient stock for product " + product.getName());
-                BigDecimal subtotal = product.getPrice().multiply(BigDecimal.valueOf(pc.getQuantity()));
+                if (product.getQuantity() < pc.getQuantity()) throw new IllegalArgumentException("Insufficient stock for product " + product.getName());
+                BigDecimal unitPrice = BigDecimal.valueOf(product.getPrice());
+                BigDecimal subtotal = unitPrice.multiply(BigDecimal.valueOf(pc.getQuantity()));
                 total = total.add(subtotal);
                 orderItems.add(OrderItem.builder()
                         .product(product)
                         .rental(null)
                         .quantity(pc.getQuantity())
-                        .unitPrice(product.getPrice())
+                        .unitPrice(unitPrice)
                         .subtotal(subtotal)
                         .build());
             }
@@ -62,19 +63,24 @@ public class CheckoutService {
             for (CheckoutRequestDTO.Key key : request.getSelectedRentals()) {
                 RentalCart.RentalCartKey id = new RentalCart.RentalCartKey(key.getUserId(), key.getRentalId());
                 RentalCart rc = rentalCartRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Rental cart item not found"));
-                Rental rental = rc.getRental();
+                
+                // Get the tool for this rental
+                Tool tool = toolRepository.findById(key.getRentalId())
+                    .orElseThrow(() -> new IllegalArgumentException("Tool not found"));
+                
                 if (rc.getQuantity() <= 0) throw new IllegalArgumentException("Quantity must be > 0");
                 if (rc.getRentalStart() == null || rc.getRentalEnd() == null || !rc.getRentalStart().isBefore(rc.getRentalEnd()))
                     throw new IllegalArgumentException("Invalid rental dates");
-                if (rental.getStockQuantity() < rc.getQuantity()) throw new IllegalArgumentException("Insufficient stock for rental " + rental.getName());
+                if (tool.getStockQuantity() < rc.getQuantity()) throw new IllegalArgumentException("Insufficient stock for rental " + tool.getName());
                 long days = ChronoUnit.DAYS.between(rc.getRentalStart(), rc.getRentalEnd());
-                BigDecimal subtotal = rental.getDailyRate().multiply(BigDecimal.valueOf(rc.getQuantity())).multiply(BigDecimal.valueOf(days));
+                BigDecimal subtotal = tool.getDailyRate().multiply(BigDecimal.valueOf(rc.getQuantity())).multiply(BigDecimal.valueOf(days));
                 total = total.add(subtotal);
                 orderItems.add(OrderItem.builder()
                         .product(null)
-                        .rental(rental)
+                        .rental(null)  // We'll set the toolId separately
+                        .toolId(tool.getId())
                         .quantity(rc.getQuantity())
-                        .unitPrice(rental.getDailyRate())
+                        .unitPrice(tool.getDailyRate())
                         .subtotal(subtotal)
                         .rentalStart(rc.getRentalStart())
                         .rentalEnd(rc.getRentalEnd())
@@ -87,16 +93,16 @@ public class CheckoutService {
             for (CheckoutRequestDTO.Key key : request.getSelectedProducts()) {
                 Product product = productRepository.findById(key.getProductId()).orElseThrow();
                 ProductCart pc = productCartRepository.findById(new ProductCart.ProductCartKey(key.getUserId(), key.getProductId())).orElseThrow();
-                product.setStockQuantity(product.getStockQuantity() - pc.getQuantity());
+                product.setQuantity(product.getQuantity() - pc.getQuantity());
                 productRepository.save(product);
             }
         }
         if (request.getSelectedRentals() != null) {
             for (CheckoutRequestDTO.Key key : request.getSelectedRentals()) {
-                Rental rental = rentalRepository.findById(key.getRentalId()).orElseThrow();
+                Tool tool = toolRepository.findById(key.getRentalId()).orElseThrow();
                 RentalCart rc = rentalCartRepository.findById(new RentalCart.RentalCartKey(key.getUserId(), key.getRentalId())).orElseThrow();
-                rental.setStockQuantity(rental.getStockQuantity() - rc.getQuantity());
-                rentalRepository.save(rental);
+                tool.setStockQuantity(tool.getStockQuantity() - rc.getQuantity());
+                toolRepository.save(tool);
             }
         }
 
@@ -148,11 +154,22 @@ public class CheckoutService {
         // Response DTO
         List<OrderResponseDTO.Item> items = new ArrayList<>();
         for (OrderItem oi : orderItems) {
+            // Get the name from the product or tool
+            String name = "";
+            if (oi.getProduct() != null) {
+                name = oi.getProduct().getName();
+            } else if (oi.getToolId() != null) {
+                Tool tool = toolRepository.findById(oi.getToolId()).orElse(null);
+                if (tool != null) {
+                    name = tool.getName();
+                }
+            }
+            
             items.add(OrderResponseDTO.Item.builder()
                     .type(oi.getProduct() != null ? "PRODUCT" : "RENTAL")
                     .productId(oi.getProduct() != null ? oi.getProduct().getId() : null)
-                    .rentalId(oi.getRental() != null ? oi.getRental().getId() : null)
-                    .name(oi.getProduct() != null ? oi.getProduct().getName() : oi.getRental().getName())
+                    .rentalId(oi.getToolId()) // Use toolId directly
+                    .name(name)
                     .quantity(oi.getQuantity())
                     .unitPrice(oi.getUnitPrice())
                     .subtotal(oi.getSubtotal())

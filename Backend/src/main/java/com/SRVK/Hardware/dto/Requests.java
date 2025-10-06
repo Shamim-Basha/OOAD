@@ -1,4 +1,4 @@
-package com.SRVK.Hardware.dto.cart;
+package com.SRVK.Hardware.dto;
 
 import lombok.*;
 
@@ -6,9 +6,6 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class Requests {
     // Add to product cart
     @Data
@@ -76,5 +73,3 @@ public class Requests {
         private String paymentDetails; // opaque string for mock payments
     }
 }
-
-

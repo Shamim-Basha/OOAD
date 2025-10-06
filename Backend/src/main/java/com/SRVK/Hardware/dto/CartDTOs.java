@@ -1,4 +1,4 @@
-package com.SRVK.Hardware.dto.cart;
+package com.SRVK.Hardware.dto;
 
 import lombok.*;
 
@@ -42,5 +42,3 @@ public class CartDTOs {
         private BigDecimal subtotal;
     }
 }
-
-

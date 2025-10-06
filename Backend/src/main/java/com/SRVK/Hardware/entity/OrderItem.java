@@ -29,6 +29,9 @@ public class OrderItem {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "rental_id")
     private Rental rental; // null if purchase
+    
+    @Column(name = "tool_id")
+    private Long toolId; // used when the item is a rental
 
     @Column(nullable = false)
     private Integer quantity;

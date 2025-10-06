@@ -20,7 +20,7 @@ public class CartController {
     @PostMapping("/product/add")
     public ResponseEntity<?> addProduct(@RequestBody AddProductCartRequest request) {
         try {
-            cartService.addProduct(request);
+            cartService.addProductToCart(request);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -30,7 +30,7 @@ public class CartController {
     @PostMapping("/rental/add")
     public ResponseEntity<?> addRental(@RequestBody AddRentalCartRequest request) {
         try {
-            cartService.addRental(request);
+            cartService.addRentalToCart(request);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -40,7 +40,7 @@ public class CartController {
     @GetMapping("/{userId}")
     public ResponseEntity<?> getCart(@PathVariable Long userId) {
         try {
-            CartResponseDTO cart = cartService.getCart(userId);
+            CartResponseDTO cart = cartService.getCartByUser(userId);
             return ResponseEntity.ok(cart);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("{\"success\":false,\"message\":\""+e.getMessage()+"\"}");
@@ -50,7 +50,7 @@ public class CartController {
     @PutMapping("/product/{userId}/{productId}")
     public ResponseEntity<?> updateProduct(@PathVariable Long userId, @PathVariable Long productId, @RequestBody UpdateProductCartRequest request) {
         try {
-            cartService.updateProduct(userId, productId, request);
+            cartService.updateProductQuantity(userId, productId, request);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -60,7 +60,7 @@ public class CartController {
     @PutMapping("/rental/{userId}/{rentalId}")
     public ResponseEntity<?> updateRental(@PathVariable Long userId, @PathVariable Long rentalId, @RequestBody UpdateRentalCartRequest request) {
         try {
-            cartService.updateRental(userId, rentalId, request);
+            cartService.updateRentalDuration(userId, rentalId, request);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -70,7 +70,7 @@ public class CartController {
     @DeleteMapping("/product/{userId}/{productId}")
     public ResponseEntity<?> deleteProduct(@PathVariable Long userId, @PathVariable Long productId) {
         try {
-            cartService.removeProduct(userId, productId);
+            cartService.removeProductFromCart(userId, productId);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -80,7 +80,7 @@ public class CartController {
     @DeleteMapping("/rental/{userId}/{rentalId}")
     public ResponseEntity<?> deleteRental(@PathVariable Long userId, @PathVariable Long rentalId) {
         try {
-            cartService.removeRental(userId, rentalId);
+            cartService.removeRentalFromCart(userId, rentalId);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -94,6 +94,8 @@ public class CartController {
                 return ResponseEntity.badRequest().body("{\"success\":false,\"message\":\"userId path and body mismatch\"}");
             }
             OrderResponseDTO response = checkoutService.checkout(request);
+            // Clear the cart after successful checkout
+            cartService.clearCart(userId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("{\"success\":false,\"message\":\""+e.getMessage()+"\"}");
