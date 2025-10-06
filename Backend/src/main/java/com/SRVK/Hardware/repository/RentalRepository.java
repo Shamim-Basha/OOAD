@@ -12,6 +12,10 @@ import java.util.List;
 @Repository
 public interface RentalRepository extends JpaRepository<Rental, Long> {
     
+    List<Rental> findByUserId(Long userId);
+    
+    List<Rental> findByToolId(Long toolId);
+    
     // Find overlapping rentals for a specific tool and date range
     @Query("SELECT r FROM Rental r WHERE r.toolId = :toolId " +
            "AND ((r.startDate <= :endDate AND r.endDate >= :startDate))")
