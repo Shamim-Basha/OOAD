@@ -15,6 +15,7 @@ import com.SRVK.Hardware.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -32,6 +33,7 @@ public class CartService {
     private final ToolRepository toolRepository;
     private final CartItemRepository cartItemRepository;
     private final UserRepository userRepository;
+    private final RentalService rentalService;
 
     public CartItemResponseDTO cartToCartItemResponseDTO(Cart cart){
         return CartItemResponseDTO.builder().build();
@@ -227,5 +229,52 @@ public class CartService {
         Cart cart = getOrCreateCart(userId);
         cart.getItems().clear();
         return cartRepository.save(cart);
+    }
+
+    @Transactional
+    public java.util.List<com.SRVK.Hardware.entity.Rental> checkoutRentals(Long userId) {
+        Cart cart = getOrCreateCart(userId);
+
+        java.util.List<com.SRVK.Hardware.entity.Rental> createdRentals = new java.util.ArrayList<>();
+
+        // Filter rental items
+        java.util.List<CartItem> rentalItems = new java.util.ArrayList<>();
+        for (CartItem item : cart.getItems()) {
+            if (item.isRental()) {
+                rentalItems.add(item);
+            }
+        }
+
+        if (rentalItems.isEmpty()) {
+            return createdRentals;
+        }
+
+        // Create rentals using existing validation logic in RentalService
+        for (CartItem item : rentalItems) {
+            Long toolId = item.getToolId();
+            if (toolId == null && item.getProduct() != null) {
+                // Fallback: if cart stored a Product for tool, use its id
+                toolId = item.getProduct().getId();
+            }
+
+            if (toolId == null) {
+                throw new RuntimeException("Missing toolId for rental cart item " + item.getId());
+            }
+
+            com.SRVK.Hardware.entity.Rental rental = rentalService.createRental(
+                    userId,
+                    toolId,
+                    item.getRentalStart(),
+                    item.getRentalEnd(),
+                    item.getQuantity()
+            );
+            createdRentals.add(rental);
+        }
+
+        // Remove only the rental items from the cart, keep purchase items if any
+        cart.getItems().removeIf(CartItem::isRental);
+        cartRepository.save(cart);
+
+        return createdRentals;
     }
 }
