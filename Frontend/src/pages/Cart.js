@@ -248,13 +248,18 @@ const Cart = () => {
                     <input
                       type="number"
                       value={item.quantity}
-                      onChange={(e) => updateQuantity(item.id, parseInt(e.target.value) || 1)}
+                      onChange={(e) => {
+                        const val = Math.max(1, Math.min(item.isRental ? 5 : 100, parseInt(e.target.value) || 1));
+                        updateQuantity(item.id, val);
+                      }}
                       className="quantity-input"
                       min="1"
+                      max={item.isRental ? 5 : 100}
                     />
                     <button
                       className="quantity-btn"
-                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                      onClick={() => updateQuantity(item.id, Math.min(item.isRental ? 5 : 100, item.quantity + 1))}
+                      disabled={item.isRental ? item.quantity >= 5 : false}
                     >
                       +
                     </button>

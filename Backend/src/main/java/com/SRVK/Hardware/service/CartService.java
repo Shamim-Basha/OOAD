@@ -201,10 +201,33 @@ public class CartService {
                 System.out.println("Deleting cart item due to quantity <= 0");
                 cartItemRepository.deleteById(cartItemId);
             } else {
-                // Check stock availability
-                Product product = cartItem.getProduct();
-                if (newQuantity > product.getQuantity()) {
-                    throw new RuntimeException("Insufficient stock. Available: " + product.getQuantity() + ", Requested: " + newQuantity);
+                // Check stock availability for product or tool rentals
+                if (cartItem.isRental()) {
+                    Long toolId = cartItem.getToolId();
+                    if (toolId == null && cartItem.getProduct() != null) {
+                        toolId = cartItem.getProduct().getId();
+                    }
+                    if (toolId == null) {
+                        throw new RuntimeException("Missing toolId for rental cart item " + cartItem.getId());
+                    }
+                    Tool tool = toolRepository.findById(toolId)
+                            .orElseThrow(() -> new RuntimeException("Tool not found"));
+                    // Hard cap per business rule: rentals limited to max 5 per item
+                    int cappedQuantity = Math.min(newQuantity, 5);
+                    if (cappedQuantity != newQuantity) {
+                        newQuantity = cappedQuantity;
+                    }
+                    if (newQuantity > tool.getStockQuantity()) {
+                        throw new RuntimeException("Insufficient stock. Available: " + tool.getStockQuantity() + ", Requested: " + newQuantity);
+                    }
+                } else {
+                    Product product = cartItem.getProduct();
+                    if (product == null) {
+                        throw new RuntimeException("Product not found for cart item " + cartItem.getId());
+                    }
+                    if (newQuantity > product.getQuantity()) {
+                        throw new RuntimeException("Insufficient stock. Available: " + product.getQuantity() + ", Requested: " + newQuantity);
+                    }
                 }
                 
                 System.out.println("Updating quantity from " + cartItem.getQuantity() + " to " + newQuantity);
