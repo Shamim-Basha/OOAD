@@ -59,7 +59,9 @@ public class RentalService {
         }
 
         // Calculate total cost
-        long days = ChronoUnit.DAYS.between(startDate, endDate) + 1;
+        // Note: ChronoUnit.DAYS.between calculates the difference between dates
+        // For example: between 2025-01-01 and 2025-01-02 = 1 day (not 2)
+        long days = ChronoUnit.DAYS.between(startDate, endDate);
         BigDecimal total = tool.getDailyRate()
                 .multiply(BigDecimal.valueOf(days))
                 .multiply(BigDecimal.valueOf(quantity));
@@ -79,6 +81,19 @@ public class RentalService {
 
     public List<Rental> getAll() {
         return rentalRepository.findAll();
+    }
+
+    public Rental getById(Long id) {
+        return rentalRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Rental not found"));
+    }
+
+    public List<Rental> getByUser(Long userId) {
+        return rentalRepository.findByUserId(userId);
+    }
+
+    public List<Rental> getByTool(Long toolId) {
+        return rentalRepository.findByToolId(toolId);
     }
 
     @Transactional
@@ -118,7 +133,9 @@ public class RentalService {
         }
 
         // Update rental
-        long days = ChronoUnit.DAYS.between(startDate, endDate) + 1;
+        // Note: ChronoUnit.DAYS.between calculates the difference between dates
+        // For example: between 2025-01-01 and 2025-01-02 = 1 day (not 2)
+        long days = ChronoUnit.DAYS.between(startDate, endDate);
         rental.setStartDate(startDate);
         rental.setEndDate(endDate);
         rental.setTotalCost(tool.getDailyRate()

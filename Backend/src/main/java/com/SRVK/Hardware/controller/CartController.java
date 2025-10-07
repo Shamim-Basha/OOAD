@@ -1,10 +1,8 @@
 package com.SRVK.Hardware.controller;
 
 import com.SRVK.Hardware.dto.AddItemRequest;
-import com.SRVK.Hardware.dto.UpdateItemRequest;
 import com.SRVK.Hardware.dto.UpdateQuantityRequest;
 import com.SRVK.Hardware.entity.Cart;
-import com.SRVK.Hardware.entity.CartItem;
 import com.SRVK.Hardware.service.CartService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -55,6 +53,16 @@ public class CartController {
     @PostMapping("/{userId}/checkout")
     public ResponseEntity<Cart> checkout(@PathVariable Long userId) {
         return ResponseEntity.ok(cartService.checkout(userId));
+    }
+
+    @PostMapping("/{userId}/checkout-rentals")
+    public ResponseEntity<java.util.List<com.SRVK.Hardware.entity.Rental>> checkoutRentals(@PathVariable Long userId) {
+        try{
+            return ResponseEntity.ok(cartService.checkoutRentals(userId));
+        }
+        catch(Exception e){
+            return ResponseEntity.status(400).build();
+        }
     }
 
 }

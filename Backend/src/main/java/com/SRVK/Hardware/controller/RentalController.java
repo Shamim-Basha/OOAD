@@ -36,6 +36,24 @@ public class RentalController {
         return ResponseEntity.ok(rentalService.getAll());
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<Rental> getById(@PathVariable Long id) {
+        Rental rental = rentalService.getById(id);
+        return ResponseEntity.ok(rental);
+    }
+
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<Rental>> getByUser(@PathVariable Long userId) {
+        List<Rental> rentals = rentalService.getByUser(userId);
+        return ResponseEntity.ok(rentals);
+    }
+
+    @GetMapping("/tool/{toolId}")
+    public ResponseEntity<List<Rental>> getByTool(@PathVariable Long toolId) {
+        List<Rental> rentals = rentalService.getByTool(toolId);
+        return ResponseEntity.ok(rentals);
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<Rental> update(@PathVariable Long id, @Valid @RequestBody UpdateRentalRequest request) {
         Rental rental = rentalService.updateDates(id, request.getStartDate(), request.getEndDate());

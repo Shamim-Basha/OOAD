@@ -30,7 +30,7 @@ const DashboardCards = ({ stats }) => {
           <div className="card-value">{stats.tools}</div>
         </div>
       </div>
-      <div className="dashboard-card" style={{ cursor: 'default' }}>
+      <div className="dashboard-card" onClick={() => navigate('/admin/rentals')} style={{ cursor: 'pointer' }}>
         <div className="card-icon rentals">🔄</div>
         <div className="card-info">
           <div className="card-title">Total Rentals</div>
