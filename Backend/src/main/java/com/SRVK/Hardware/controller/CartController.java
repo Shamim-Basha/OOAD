@@ -1,10 +1,11 @@
 package com.SRVK.Hardware.controller;
 
-import com.SRVK.Hardware.dto.AddItemRequest;
-import com.SRVK.Hardware.dto.UpdateQuantityRequest;
+import com.SRVK.Hardware.dto.*;
+import com.SRVK.Hardware.service.CheckoutService;
 import com.SRVK.Hardware.entity.Cart;
 import com.SRVK.Hardware.service.CartService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,49 +13,96 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/cart")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
+@Slf4j
 public class CartController {
     private final CartService cartService;
+    private final CheckoutService checkoutService;
 
-    @PostMapping("/add")
-    public ResponseEntity<Cart> addItem(@RequestBody AddItemRequest request) {
-        try{
-            return ResponseEntity.ok(cartService.addItem(request));
+    @PostMapping("/product/add")
+    public ResponseEntity<?> addProduct(@RequestBody AddProductCartRequest request) {
+        try {
+            cartService.addProductToCart(request);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
-        catch(Exception e){
-            return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/rental/add")
+    public ResponseEntity<?> addRental(@RequestBody AddRentalCartRequest request) {
+        try {
+            cartService.addRentalToCart(request);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<Cart> getCart(@PathVariable Long userId) {
-        try{
-            Cart cart = cartService.getCart(userId);
+    public ResponseEntity<?> getCart(@PathVariable Long userId) {
+        try {
+            CartResponseDTO cart = cartService.getCartByUser(userId);
             return ResponseEntity.ok(cart);
-        }
-        catch(Exception e){
-            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("{\"success\":false,\"message\":\""+e.getMessage()+"\"}");
         }
     }
 
-    @PutMapping("/item/{cartItemId}")
-    public ResponseEntity<Cart> updateItemQuantity(@PathVariable Long cartItemId,@RequestBody UpdateQuantityRequest request) {
-    try {
-        return ResponseEntity.ok(cartService.updateItemQuantity(cartItemId, request.getQuantity()));
-    } catch (Exception e) {
-        return ResponseEntity.status(500).build();
+    @PutMapping("/product/{userId}/{productId}")
+    public ResponseEntity<?> updateProduct(@PathVariable Long userId, @PathVariable Long productId, @RequestBody UpdateProductCartRequest request) {
+        try {
+            cartService.updateProductQuantity(userId, productId, request);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
-}
 
-    @DeleteMapping("/item/{cartItemId}")
-    public ResponseEntity<String> removeItem(@PathVariable Long cartItemId) {
-        return ResponseEntity.ok(cartService.removeItem(cartItemId));
+    @PutMapping("/rental/{userId}/{rentalId}")
+    public ResponseEntity<?> updateRental(@PathVariable Long userId, @PathVariable Long rentalId, @RequestBody UpdateRentalCartRequest request) {
+        try {
+            cartService.updateRentalDuration(userId, rentalId, request);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/product/{userId}/{productId}")
+    public ResponseEntity<?> deleteProduct(@PathVariable Long userId, @PathVariable Long productId) {
+        try {
+            cartService.removeProductFromCart(userId, productId);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/rental/{userId}/{rentalId}")
+    public ResponseEntity<?> deleteRental(@PathVariable Long userId, @PathVariable Long rentalId) {
+        try {
+            cartService.removeRentalFromCart(userId, rentalId);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @PostMapping("/{userId}/checkout")
-    public ResponseEntity<Cart> checkout(@PathVariable Long userId) {
-        return ResponseEntity.ok(cartService.checkout(userId));
+    public ResponseEntity<?> checkout(@PathVariable Long userId, @RequestBody CheckoutRequestDTO request) {
+        try {
+            if (!userId.equals(request.getUserId())) {
+                return ResponseEntity.badRequest().body("{\"success\":false,\"message\":\"userId path and body mismatch\"}");
+            }
+            OrderResponseDTO response = checkoutService.checkout(request);
+            // Clear the cart after successful checkout
+            cartService.clearCart(userId);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("{\"success\":false,\"message\":\""+e.getMessage()+"\"}");
+        }
     }
-
+  
     @PostMapping("/{userId}/checkout-rentals")
     public ResponseEntity<java.util.List<com.SRVK.Hardware.entity.Rental>> checkoutRentals(@PathVariable Long userId) {
         try{
@@ -64,5 +112,4 @@ public class CartController {
             return ResponseEntity.status(400).build();
         }
     }
-
 }

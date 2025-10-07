@@ -2,13 +2,11 @@ package com.SRVK.Hardware.controller;
 
 import com.SRVK.Hardware.entity.Product;
 import com.SRVK.Hardware.service.ProductService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/products")
@@ -38,7 +36,7 @@ public class ProductController {
     @PostMapping
     public ResponseEntity<Product> addNewProduct(@RequestBody Product product) {
         try {
-            Product savedProduct = productService.addProduct(product);
+            productService.addProduct(product);
             return ResponseEntity.status(HttpStatus.CREATED).body(product);
         }catch (Exception e){
             return ResponseEntity.internalServerError().build();
