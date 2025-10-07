@@ -5,6 +5,7 @@ import com.SRVK.Hardware.entity.*;
 import com.SRVK.Hardware.entity.ProductCart.ProductCartKey;
 import com.SRVK.Hardware.entity.RentalCart.RentalCartKey;
 import com.SRVK.Hardware.repository.*;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -19,8 +20,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
+@RequiredArgsConstructor
 public class CartService {
 
     private final ProductCartRepository productCartRepository;
@@ -292,25 +293,27 @@ public class CartService {
         // Find cart item and validate it exists
         RentalCart rentalCart = rentalCartRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Item not found in cart"));
-            
-        // Get the tool directly from the cart relationship
-        Tool tool = rentalCart.getTool();
-            
-        // Check if tool has sufficient stock
+
+        // Ensure corresponding tool exists
+        Tool tool = toolRepository.findById(rentalId)
+            .orElseThrow(() -> new IllegalArgumentException("Tool not found"));
+
+        // Check stock availability
         if (tool.getStockQuantity() < request.getQuantity()) {
             throw new IllegalArgumentException("Insufficient stock");
         }
-        
+
         // Update quantity and rental dates
         rentalCart.setQuantity(request.getQuantity());
         rentalCart.setRentalStart(request.getRentalStart());
         rentalCart.setRentalEnd(request.getRentalEnd());
-        
+
         // Calculate total cost
         long days = ChronoUnit.DAYS.between(request.getRentalStart(), request.getRentalEnd());
+        if (days < 0) days = 0;
         BigDecimal totalCost = tool.getDailyRate().multiply(BigDecimal.valueOf(days * request.getQuantity()));
         rentalCart.setTotalCost(totalCost);
-        
+
         // Save to database
         rentalCartRepository.save(rentalCart);
         
@@ -383,9 +386,9 @@ public class CartService {
             com.SRVK.Hardware.entity.Rental rental = rentalService.createRental(
                     userId,
                     toolId,
-                    item.getRentalStart(),
-                    item.getRentalEnd(),
-                    item.getQuantity()
+                    rc.getRentalStart(),
+                    rc.getRentalEnd(),
+                    rc.getQuantity()
             );
             createdRentals.add(rental);
         }
