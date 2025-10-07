@@ -24,8 +24,8 @@ public class RentalCart {
         @Column(name = "user_id")
         private Long userId;
 
-        @Column(name = "rental_id")
-        private Long rentalId;
+        @Column(name = "tool_id")
+        private Long toolId;
     }
 
     @EmbeddedId
@@ -37,9 +37,9 @@ public class RentalCart {
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("rentalId")
-    @JoinColumn(name = "rental_id")
-    private Rental rental;
+    @MapsId("toolId")
+    @JoinColumn(name = "tool_id", referencedColumnName = "id")
+    private Tool tool;
 
     @Column(nullable = false)
     private Integer quantity;

@@ -24,6 +24,7 @@ public class CheckoutService {
     private final RentalCartRepository rentalCartRepository;
     private final ProductRepository productRepository;
     private final ToolRepository toolRepository;
+    private final RentalRepository rentalRepository;
     private final UserRepository userRepository;
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
@@ -59,22 +60,42 @@ public class CheckoutService {
             }
         }
 
+        List<Rental> rentals = new ArrayList<>();
         if (request.getSelectedRentals() != null) {
             for (CheckoutRequestDTO.Key key : request.getSelectedRentals()) {
+                // Create composite key using rentalId as toolId (since frontend sends toolId as rentalId)
                 RentalCart.RentalCartKey id = new RentalCart.RentalCartKey(key.getUserId(), key.getRentalId());
                 RentalCart rc = rentalCartRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Rental cart item not found"));
                 
-                // Get the tool for this rental
-                Tool tool = toolRepository.findById(key.getRentalId())
-                    .orElseThrow(() -> new IllegalArgumentException("Tool not found"));
+                // Get the tool directly from the rental cart relationship
+                Tool tool = rc.getTool();
                 
                 if (rc.getQuantity() <= 0) throw new IllegalArgumentException("Quantity must be > 0");
                 if (rc.getRentalStart() == null || rc.getRentalEnd() == null || !rc.getRentalStart().isBefore(rc.getRentalEnd()))
                     throw new IllegalArgumentException("Invalid rental dates");
                 if (tool.getStockQuantity() < rc.getQuantity()) throw new IllegalArgumentException("Insufficient stock for rental " + tool.getName());
+                
                 long days = ChronoUnit.DAYS.between(rc.getRentalStart(), rc.getRentalEnd());
+                if (days == 0) days = 1; // Minimum 1 day rental
+                
                 BigDecimal subtotal = tool.getDailyRate().multiply(BigDecimal.valueOf(rc.getQuantity())).multiply(BigDecimal.valueOf(days));
                 total = total.add(subtotal);
+                
+                // Create Rental record for tracking rentals separately from orders
+                Rental rental = Rental.builder()
+                    .userId(key.getUserId())
+                    .toolId(tool.getId())
+                    .startDate(rc.getRentalStart())
+                    .endDate(rc.getRentalEnd())
+                    .quantity(rc.getQuantity())
+                    .totalCost(subtotal)
+                    .status(Rental.RentalStatus.ACTIVE)
+                    .build();
+                
+                // Add to list to save after payment confirmation
+                rentals.add(rental);
+                
+                // Include in order items for order tracking
                 orderItems.add(OrderItem.builder()
                         .product(null)
                         .rental(null)  // We'll set the toolId separately
@@ -99,8 +120,8 @@ public class CheckoutService {
         }
         if (request.getSelectedRentals() != null) {
             for (CheckoutRequestDTO.Key key : request.getSelectedRentals()) {
-                Tool tool = toolRepository.findById(key.getRentalId()).orElseThrow();
                 RentalCart rc = rentalCartRepository.findById(new RentalCart.RentalCartKey(key.getUserId(), key.getRentalId())).orElseThrow();
+                Tool tool = rc.getTool();
                 tool.setStockQuantity(tool.getStockQuantity() - rc.getQuantity());
                 toolRepository.save(tool);
             }
@@ -139,6 +160,15 @@ public class CheckoutService {
         order.setStatus("PAID");
         orderRepository.save(order);
 
+        // Save all rental records now that payment is confirmed
+        if (!rentals.isEmpty()) {
+            // We're not using a batch save here to ensure each rental gets its own ID
+            for (Rental rental : rentals) {
+                Rental savedRental = rentalRepository.save(rental);
+                log.info("Created rental record: {}", savedRental);
+            }
+        }
+
         // Clear carts
         if (request.getSelectedProducts() != null) {
             for (CheckoutRequestDTO.Key key : request.getSelectedProducts()) {
@@ -147,7 +177,7 @@ public class CheckoutService {
         }
         if (request.getSelectedRentals() != null) {
             for (CheckoutRequestDTO.Key key : request.getSelectedRentals()) {
-                rentalCartRepository.deleteByIdUserIdAndIdRentalId(key.getUserId(), key.getRentalId());
+                rentalCartRepository.deleteByIdUserIdAndIdToolId(key.getUserId(), key.getRentalId());
             }
         }
 
