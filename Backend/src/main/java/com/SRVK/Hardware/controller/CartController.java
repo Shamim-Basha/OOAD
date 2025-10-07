@@ -4,6 +4,7 @@ import com.SRVK.Hardware.dto.*;
 import com.SRVK.Hardware.entity.Tool;
 import com.SRVK.Hardware.repository.ToolRepository;
 import com.SRVK.Hardware.service.CheckoutService;
+import com.SRVK.Hardware.entity.Cart;
 import com.SRVK.Hardware.service.CartService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -116,6 +117,7 @@ public class CartController {
             return ResponseEntity.badRequest().body("{\"success\":false,\"message\":\""+e.getMessage()+"\"}");
         }
     }
+<<<<<<< HEAD
     
     // Debug endpoint to check if tools exist
     @GetMapping("/debug/tools")
@@ -172,6 +174,16 @@ public class CartController {
         } catch (Exception e) {
             log.error("Error in debug add rental", e);
             return ResponseEntity.badRequest().body("Error: " + e.getMessage());
+=======
+  
+    @PostMapping("/{userId}/checkout-rentals")
+    public ResponseEntity<java.util.List<com.SRVK.Hardware.entity.Rental>> checkoutRentals(@PathVariable Long userId) {
+        try{
+            return ResponseEntity.ok(cartService.checkoutRentals(userId));
+        }
+        catch(Exception e){
+            return ResponseEntity.status(400).build();
+>>>>>>> f6220df3c48f367c93a094be005c1eb05c812b61
         }
     }
 }
