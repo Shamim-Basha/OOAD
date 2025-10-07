@@ -2,6 +2,7 @@ package com.SRVK.Hardware.controller;
 
 import com.SRVK.Hardware.dto.*;
 import com.SRVK.Hardware.service.CheckoutService;
+import com.SRVK.Hardware.entity.Cart;
 import com.SRVK.Hardware.service.CartService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -99,6 +100,16 @@ public class CartController {
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("{\"success\":false,\"message\":\""+e.getMessage()+"\"}");
+        }
+    }
+  
+    @PostMapping("/{userId}/checkout-rentals")
+    public ResponseEntity<java.util.List<com.SRVK.Hardware.entity.Rental>> checkoutRentals(@PathVariable Long userId) {
+        try{
+            return ResponseEntity.ok(cartService.checkoutRentals(userId));
+        }
+        catch(Exception e){
+            return ResponseEntity.status(400).build();
         }
     }
 }

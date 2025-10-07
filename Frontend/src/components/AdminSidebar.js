@@ -28,6 +28,11 @@ const AdminSidebar = () => {
               Tool Management
             </li>
           </Link>
+          <Link to="/admin/rentals" className="sidebar-link" style={{ textDecoration: 'none' }}>
+            <li className={location.pathname === '/admin/rentals' ? 'active' : ''}>
+              Rental Management
+            </li>
+          </Link>
           <li>
             Sales Reports
           </li>

@@ -12,6 +12,7 @@ const ServiceDetail = () => {
   const [rentalDays, setRentalDays] = useState(1);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [quantity, setQuantity] = useState(1);
 
   // Calculate rental days from selected dates
   useEffect(() => {
@@ -19,30 +20,14 @@ const ServiceDetail = () => {
       const start = new Date(startDate);
       const end = new Date(endDate);
       const timeDiff = end.getTime() - start.getTime();
-      const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1; // +1 to include both start and end days
-      
+      const daysDiff = Math.max(1, Math.round(timeDiff / (1000 * 3600 * 24))); // exclusive end date
       if (daysDiff > 0) {
         setRentalDays(daysDiff);
       }
     }
   }, [startDate, endDate]);
 
-  // Update end date when days selector is used manually
-  const updateDatesFromDays = (newDays) => {
-    if (startDate && !endDate) {
-      // If we have a start date but no end date, calculate end date
-      const start = new Date(startDate);
-      const end = new Date(start);
-      end.setDate(start.getDate() + newDays - 1); // -1 because we include both start and end days
-      setEndDate(end.toISOString().split('T')[0]);
-    }
-  };
-
-  // Clear dates to allow manual days selection
-  const clearDates = () => {
-    setStartDate('');
-    setEndDate('');
-  };
+  // Days are strictly derived from dates; no manual +/- controls
   const [activeTab, setActiveTab] = useState('details');
 
   const navigate = useNavigate();
@@ -161,7 +146,7 @@ const ServiceDetail = () => {
 
   const calculateTotalPrice = () => {
     if (!service) return 0;
-    return service.price * rentalDays;
+    return service.price * rentalDays * quantity;
   };
 
   const fees = useMemo(() => {
@@ -171,7 +156,7 @@ const ServiceDetail = () => {
     const tax = Math.round(subtotal * 0.02);
     const total = subtotal + delivery + insurance + tax;
     return { subtotal, delivery, insurance, tax, total };
-  }, [service, rentalDays]);
+  }, [service, rentalDays, quantity]);
 
   const handleRentNow = async () => {
     if (!service) return;
@@ -199,7 +184,7 @@ const ServiceDetail = () => {
       const payload = {
         userId,
         productId: Number(service.id), // Use service.id as productId for tools
-        quantity: 1,
+        quantity: Math.max(1, Math.min(5, Number(quantity) || 1)),
         rental: true,
         rentalStart: startDate,
         rentalEnd: endDate
@@ -330,70 +315,43 @@ const ServiceDetail = () => {
 
               <div className="form-group">
                 <label>Number of Days</label>
-                <div className="days-selector">
+                <div className="days-display" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ padding: '8px 12px', border: '1px solid #ddd', borderRadius: '4px', background: '#f8f9fa' }}>
+                    {rentalDays}
+                  </span>
+                  <small style={{ color: '#666' }}>Calculated from selected dates</small>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Quantity</label>
+                <div className="quantity-selector" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <button
+                    type="button"
                     className="days-btn"
-                    onClick={() => {
-                      const newDays = Math.max(1, rentalDays - 1);
-                      setRentalDays(newDays);
-                      updateDatesFromDays(newDays);
-                    }}
-                    disabled={rentalDays <= 1}
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    disabled={quantity <= 1}
                   >
                     -
                   </button>
                   <input
                     type="number"
-                    value={rentalDays}
-                    onChange={(e) => {
-                      const newDays = Math.max(1, parseInt(e.target.value) || 1);
-                      setRentalDays(newDays);
-                      updateDatesFromDays(newDays);
-                    }}
+                    value={quantity}
+                    onChange={(e) => setQuantity(Math.max(1, Math.min(5, parseInt(e.target.value) || 1)))}
                     className="days-input"
                     min="1"
-                    max="30"
-                    readOnly={startDate && endDate}
-                    style={{ 
-                      backgroundColor: startDate && endDate ? '#f8f9fa' : 'transparent',
-                      cursor: startDate && endDate ? 'not-allowed' : 'text'
-                    }}
+                    max="5"
                   />
                   <button
+                    type="button"
                     className="days-btn"
-                    onClick={() => {
-                      const newDays = Math.min(30, rentalDays + 1);
-                      setRentalDays(newDays);
-                      updateDatesFromDays(newDays);
-                    }}
-                    disabled={rentalDays >= 30}
+                    onClick={() => setQuantity(Math.min(5, quantity + 1))}
+                    disabled={quantity >= 5}
                   >
                     +
                   </button>
                 </div>
-                {startDate && endDate && (
-                  <div style={{ marginTop: '4px' }}>
-                    <small style={{ color: '#666', fontSize: '12px' }}>
-                      Days calculated from selected dates
-                    </small>
-                    <button
-                      type="button"
-                      onClick={clearDates}
-                      style={{
-                        marginLeft: '8px',
-                        padding: '2px 8px',
-                        fontSize: '11px',
-                        backgroundColor: 'transparent',
-                        border: '1px solid #d4af37',
-                        color: '#d4af37',
-                        borderRadius: '4px',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      Clear Dates
-                    </button>
-                  </div>
-                )}
+                <small style={{ color: '#666' }}>Limited rental quantity (max 5)</small>
               </div>
 
               <div className="rental-summary">

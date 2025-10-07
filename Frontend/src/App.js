@@ -17,6 +17,7 @@ import AdminDashboard from "./pages/Admin/AdminDashboard"
 import UserManagement from './pages/Admin/UserManagement';
 import ProductManagement from './pages/Admin/ProductManagement';
 import ToolManagement from './pages/Admin/ToolManagement';
+import RentalManagement from './pages/Admin/RentalManagement';
 
 
 
@@ -44,6 +45,7 @@ function AppContent() {
           <Route path="/admin/users" element={<UserManagement />} />
           <Route path="/admin/products" element={<ProductManagement />} />
           <Route path="/admin/tools" element={<ToolManagement />} />
+          <Route path="/admin/rentals" element={<RentalManagement />} />
         </Routes>
       </main>
       {!isAdminRoute && <Footer />}
