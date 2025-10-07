@@ -130,6 +130,9 @@ const Cart = () => {
     return calculateSubtotal() + calculateTax();
   };
 
+  // combined list of items for summary count
+  const cartItems = [...products, ...rentals];
+
   const formatPrice = (price) => {
     return `Rs. ${price.toLocaleString()}`;
   };
