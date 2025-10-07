@@ -183,19 +183,36 @@ const ServiceDetail = () => {
       // Add rental item to cart instead of creating rental directly
       const payload = {
         userId,
+<<<<<<< HEAD
+        rentalId: Number(service.id), // Use service.id as rentalId for tools
+        quantity: 1,
+=======
         productId: Number(service.id), // Use service.id as productId for tools
         quantity: Math.max(1, Math.min(5, Number(quantity) || 1)),
         rental: true,
+>>>>>>> f6220df3c48f367c93a094be005c1eb05c812b61
         rentalStart: startDate,
         rentalEnd: endDate
       };
       
-      const res = await axios.post('http://localhost:8080/api/cart/add', payload);
-      alert('Item added to cart successfully!');
-      navigate('/cart');
+      // Log full details for debugging
+      console.log('Sending rental cart add request:', JSON.stringify(payload));
+      
+      try {
+        const res = await axios.post('http://localhost:8080/api/cart/rental/add', payload);
+        console.log('Rental cart add response:', res.data);
+        alert('Item added to cart successfully!');
+        navigate('/cart');
+      } catch (apiError) {
+        console.error('API Error:', apiError);
+        console.error('Response:', apiError.response);
+        const message = apiError?.response?.data || apiError?.message || 'Failed to add item to cart';
+        alert(`Error adding to cart: ${message}`);
+      }
     } catch (e) {
+      console.error('General error in handleRentNow:', e);
       const message = e?.response?.data?.message || e?.message || 'Failed to add item to cart';
-      alert(message);
+      alert(`Error: ${message}`);
     }
   };
 

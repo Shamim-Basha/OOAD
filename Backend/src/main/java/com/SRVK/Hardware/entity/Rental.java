@@ -17,6 +17,10 @@ import java.time.LocalDate;
 @Builder
 public class Rental {
 
+    public enum RentalStatus {
+        ACTIVE, RETURNED
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -39,6 +43,11 @@ public class Rental {
 
     @Column(nullable = false)
     private BigDecimal totalCost;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private RentalStatus status = RentalStatus.ACTIVE;
 }
 
 

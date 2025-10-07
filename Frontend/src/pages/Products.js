@@ -119,11 +119,10 @@ const Products = () => {
       const payload = {
         userId: Number(USER_ID),
         productId: product.id,
-        quantity: 1,
-        rental: false
+        quantity: 1
       };
       
-      const res = await axios.post("http://localhost:8080/api/cart/add", payload);
+      const res = await axios.post("http://localhost:8080/api/cart/product/add", payload);
       // alert('Item added to cart successfully!');
       console.log('Cart response:', res.data);
       navigate('/cart');
