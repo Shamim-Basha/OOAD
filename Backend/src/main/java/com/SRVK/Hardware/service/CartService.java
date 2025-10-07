@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,12 +28,8 @@ public class CartService {
     private final ProductRepository productRepository;
     private final ToolRepository toolRepository;
     private final UserRepository userRepository;
-<<<<<<< HEAD
     private final JdbcTemplate jdbcTemplate;
-=======
     private final RentalService rentalService;
->>>>>>> f6220df3c48f367c93a094be005c1eb05c812b61
-
     /**
      * Get cart information for a specific user
      * @param userId the ID of the user
@@ -296,68 +293,12 @@ public class CartService {
         RentalCart rentalCart = rentalCartRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Item not found in cart"));
             
-<<<<<<< HEAD
         // Get the tool directly from the cart relationship
         Tool tool = rentalCart.getTool();
             
         // Check if tool has sufficient stock
         if (tool.getStockQuantity() < request.getQuantity()) {
             throw new IllegalArgumentException("Insufficient stock");
-=======
-            CartItem cartItem = cartItemRepository.findById(cartItemId)
-                    .orElseThrow(() -> new RuntimeException("Cart item not found"));
-
-            System.out.println("Found cart item: " + cartItem.getId() + ", current quantity: " + cartItem.getQuantity());
-
-            if (newQuantity <= 0) {
-                System.out.println("Deleting cart item due to quantity <= 0");
-                cartItemRepository.deleteById(cartItemId);
-            } else {
-                // Check stock availability for product or tool rentals
-                if (cartItem.isRental()) {
-                    Long toolId = cartItem.getToolId();
-                    if (toolId == null && cartItem.getProduct() != null) {
-                        toolId = cartItem.getProduct().getId();
-                    }
-                    if (toolId == null) {
-                        throw new RuntimeException("Missing toolId for rental cart item " + cartItem.getId());
-                    }
-                    Tool tool = toolRepository.findById(toolId)
-                            .orElseThrow(() -> new RuntimeException("Tool not found"));
-                    // Hard cap per business rule: rentals limited to max 5 per item
-                    int cappedQuantity = Math.min(newQuantity, 5);
-                    if (cappedQuantity != newQuantity) {
-                        newQuantity = cappedQuantity;
-                    }
-                    if (newQuantity > tool.getStockQuantity()) {
-                        throw new RuntimeException("Insufficient stock. Available: " + tool.getStockQuantity() + ", Requested: " + newQuantity);
-                    }
-                } else {
-                    Product product = cartItem.getProduct();
-                    if (product == null) {
-                        throw new RuntimeException("Product not found for cart item " + cartItem.getId());
-                    }
-                    if (newQuantity > product.getQuantity()) {
-                        throw new RuntimeException("Insufficient stock. Available: " + product.getQuantity() + ", Requested: " + newQuantity);
-                    }
-                }
-                
-                System.out.println("Updating quantity from " + cartItem.getQuantity() + " to " + newQuantity);
-                cartItem.setQuantity(newQuantity);
-                cartItem.setSubtotal(cartItem.getUnitPrice().multiply(BigDecimal.valueOf(newQuantity)));
-                cartItemRepository.save(cartItem);
-                System.out.println("Cart item updated successfully");
-            }
-
-            // Return the updated cart
-            Cart updatedCart = cartRepository.findById(cartItem.getCart().getId())
-                    .orElseThrow(() -> new RuntimeException("Cart not found"));
-            System.out.println("Returning cart with " + updatedCart.getItems().size() + " items");
-            return updatedCart;
-        } catch (Exception e) {
-            System.out.println("Error in updateItemQuantity: " + e.getMessage());
-            throw e;
->>>>>>> f6220df3c48f367c93a094be005c1eb05c812b61
         }
         
         // Update quantity and rental dates
@@ -416,34 +357,27 @@ public class CartService {
         log.info("Cleared cart for user {}", userId);
     }
 
+    /**
+     * Checkout all rental items in a user's cart
+     * @param userId the ID of the user
+     * @return List of created rental entities
+     */
     @Transactional
-    public java.util.List<com.SRVK.Hardware.entity.Rental> checkoutRentals(Long userId) {
-        Cart cart = getOrCreateCart(userId);
-
-        java.util.List<com.SRVK.Hardware.entity.Rental> createdRentals = new java.util.ArrayList<>();
-
-        // Filter rental items
-        java.util.List<CartItem> rentalItems = new java.util.ArrayList<>();
-        for (CartItem item : cart.getItems()) {
-            if (item.isRental()) {
-                rentalItems.add(item);
-            }
-        }
-
-        if (rentalItems.isEmpty()) {
+    public List<com.SRVK.Hardware.entity.Rental> checkoutRentals(Long userId) {
+        // Get rental carts for user
+        List<RentalCart> rentalCarts = rentalCartRepository.findByIdUserId(userId);
+        List<com.SRVK.Hardware.entity.Rental> createdRentals = new ArrayList<>();
+        
+        if (rentalCarts.isEmpty()) {
             return createdRentals;
         }
-
-        // Create rentals using existing validation logic in RentalService
-        for (CartItem item : rentalItems) {
-            Long toolId = item.getToolId();
-            if (toolId == null && item.getProduct() != null) {
-                // Fallback: if cart stored a Product for tool, use its id
-                toolId = item.getProduct().getId();
-            }
-
+        
+        // Create rentals from each rental cart item
+        for (RentalCart item : rentalCarts) {
+            Long toolId = item.getId().getToolId();
+            
             if (toolId == null) {
-                throw new RuntimeException("Missing toolId for rental cart item " + item.getId());
+                throw new RuntimeException("Missing toolId for rental cart item");
             }
 
             com.SRVK.Hardware.entity.Rental rental = rentalService.createRental(
@@ -456,10 +390,9 @@ public class CartService {
             createdRentals.add(rental);
         }
 
-        // Remove only the rental items from the cart, keep purchase items if any
-        cart.getItems().removeIf(CartItem::isRental);
-        cartRepository.save(cart);
-
+        // Remove rental items from cart
+        rentalCartRepository.deleteAll(rentalCarts);
+        
         return createdRentals;
     }
 }
