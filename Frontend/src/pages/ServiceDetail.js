@@ -183,8 +183,8 @@ const ServiceDetail = () => {
       // Add rental item to cart instead of creating rental directly
       const payload = {
         userId,
-        rentalId: Number(service.id), // Use service.id as rentalId for tools
-        quantity: 1,
+        rentalId: Number(service.id), // Use service.id as rentalId for tools (backend maps this to toolId)
+        quantity: Math.max(1, Math.min(5, Number(quantity) || 1)),
         rentalStart: startDate,
         rentalEnd: endDate
       };

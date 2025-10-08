@@ -13,7 +13,7 @@ const Cart = () => {
 
   const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
   const USER = localStorage.getItem('user');
-  const USER_ID = USER? JSON.parse(USER)["id"] : 1;
+  const USER_ID = USER? JSON.parse(USER)["id"] : null;
 
   const loadCart = () => {
     setLoading(true);
@@ -66,6 +66,12 @@ const Cart = () => {
   };
 
   useEffect(() => {
+    // Check if user is logged in
+    if (!USER) {
+      setError('Please log in to view your cart');
+      navigate('/login');
+      return;
+    }
     loadCart();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -149,9 +155,6 @@ const Cart = () => {
   const calculateTotal = () => {
     return calculateSubtotal() + calculateTax();
   };
-
-  // combined list of items for summary count
-  const cartItems = [...products, ...rentals];
 
   const formatPrice = (price) => {
     return `Rs. ${price.toLocaleString()}`;

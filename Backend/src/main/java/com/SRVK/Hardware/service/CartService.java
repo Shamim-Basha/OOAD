@@ -5,10 +5,8 @@ import com.SRVK.Hardware.entity.*;
 import com.SRVK.Hardware.entity.ProductCart.ProductCartKey;
 import com.SRVK.Hardware.entity.RentalCart.RentalCartKey;
 import com.SRVK.Hardware.repository.*;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,8 +18,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@Slf4j
 @RequiredArgsConstructor
+@Slf4j
 public class CartService {
 
     private final ProductCartRepository productCartRepository;
@@ -29,8 +27,8 @@ public class CartService {
     private final ProductRepository productRepository;
     private final ToolRepository toolRepository;
     private final UserRepository userRepository;
-    private final JdbcTemplate jdbcTemplate;
     private final RentalService rentalService;
+
     /**
      * Get cart information for a specific user
      * @param userId the ID of the user
@@ -39,10 +37,10 @@ public class CartService {
     public CartResponseDTO getCartByUser(Long userId) {
         // Validate user exists
         userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
-        
+
         // Get all product cart items for the user
         List<ProductCart> productCarts = productCartRepository.findByIdUserId(userId);
-        
+
         // Get all rental cart items for the user
         List<RentalCart> rentalCarts = rentalCartRepository.findByIdUserId(userId);
 
@@ -62,13 +60,13 @@ public class CartService {
 
         // Map rental cart items to DTOs
         List<CartRentalItemDTO> rentals = rentalCarts.stream().map(rc -> {
-            long days = rc.getRentalStart() != null && rc.getRentalEnd() != null ? 
+            long days = rc.getRentalStart() != null && rc.getRentalEnd() != null ?
                 ChronoUnit.DAYS.between(rc.getRentalStart(), rc.getRentalEnd()) : 0;
             if (days < 0) days = 0;
-            
+
             // Use the tool directly from the relationship
             Tool tool = rc.getTool();
-            
+
             CartRentalItemDTO dto = new CartRentalItemDTO();
             dto.setUserId(rc.getId().getUserId());
             // Critical fix: Set rentalId to be the same as toolId for consistency with frontend
@@ -78,16 +76,16 @@ public class CartService {
             dto.setQuantity(rc.getQuantity());
             dto.setRentalStart(rc.getRentalStart());
             dto.setRentalEnd(rc.getRentalEnd());
-            
+
             // Calculate subtotal: dailyRate * quantity * days
             // We already calculated days above, just ensure minimum 1 day
             if (days == 0) days = 1; // Minimum 1 day rental
-            
+
             BigDecimal subtotal = tool.getDailyRate()
                 .multiply(BigDecimal.valueOf(rc.getQuantity()))
                 .multiply(BigDecimal.valueOf(days));
             dto.setSubtotal(subtotal);
-            
+
             return dto;
         }).collect(Collectors.toList());
 
@@ -95,7 +93,22 @@ public class CartService {
         CartResponseDTO cart = new CartResponseDTO();
         cart.setProducts(products);
         cart.setRentals(rentals);
-        
+
+        // Calculate total amount for the entire cart
+        BigDecimal totalAmount = BigDecimal.ZERO;
+
+        // Add product subtotals
+        for (CartProductItemDTO product : products) {
+            totalAmount = totalAmount.add(product.getSubtotal());
+        }
+
+        // Add rental subtotals
+        for (CartRentalItemDTO rental : rentals) {
+            totalAmount = totalAmount.add(rental.getSubtotal());
+        }
+
+        cart.setTotalAmount(totalAmount);
+
         return cart;
     }
 
@@ -109,15 +122,15 @@ public class CartService {
         if (request.getQuantity() == null || request.getQuantity() <= 0) {
             throw new IllegalArgumentException("Quantity must be greater than zero");
         }
-        
+
         // Get product and validate it exists
         Product product = productRepository.findById(request.getProductId())
             .orElseThrow(() -> new IllegalArgumentException("Product not found"));
-            
+
         // Get user and validate it exists
         User user = userRepository.findById(request.getUserId())
             .orElseThrow(() -> new IllegalArgumentException("User not found"));
-            
+
         // Check if product has sufficient stock
         if (product.getQuantity() < request.getQuantity()) {
             throw new IllegalArgumentException("Insufficient stock");
@@ -125,7 +138,7 @@ public class CartService {
 
         // Create composite key for product cart
         ProductCartKey id = new ProductCartKey(request.getUserId(), request.getProductId());
-        
+
         // Find existing cart item or create new one
         ProductCart productCart = productCartRepository.findById(id)
             .orElse(ProductCart.builder()
@@ -135,13 +148,13 @@ public class CartService {
                 .quantity(0)
                 .addedAt(LocalDateTime.now())
                 .build());
-                
+
         // Update quantity
         productCart.setQuantity(productCart.getQuantity() + request.getQuantity());
-        
+
         // Save to database
         productCartRepository.save(productCart);
-        
+
         log.info("Added product {} to cart of user {} qty {}", request.getProductId(), request.getUserId(), request.getQuantity());
     }
 
@@ -152,87 +165,71 @@ public class CartService {
     @Transactional
     public void addRentalToCart(AddRentalCartRequest request) {
         log.info("Starting addRentalToCart with request: {}", request);
-        
-        // Validate request
+
+        // Validate quantity
         if (request.getQuantity() == null || request.getQuantity() <= 0) {
-            log.error("Invalid quantity: {}", request.getQuantity());
             throw new IllegalArgumentException("Quantity must be greater than zero");
         }
-        
-        if (request.getRentalStart() == null || request.getRentalEnd() == null || 
-            !request.getRentalStart().isBefore(request.getRentalEnd())) {
-            log.error("Invalid rental dates: start={}, end={}", request.getRentalStart(), request.getRentalEnd());
+
+        // Validate rental dates
+        if (request.getRentalStart() == null || request.getRentalEnd() == null ||
+                !request.getRentalStart().isBefore(request.getRentalEnd())) {
             throw new IllegalArgumentException("Invalid rental dates");
         }
-        
-        // Get tool and validate it exists (using toolId, not name)
-        log.info("Looking up tool with ID: {}", request.getRentalId());
+
+        // Get tool
         Tool tool = toolRepository.findById(request.getRentalId())
-            .orElseThrow(() -> {
-                log.error("Tool not found with ID: {}", request.getRentalId());
-                return new IllegalArgumentException("Tool not found with ID: " + request.getRentalId());
-            });
-        log.info("Found tool: {}", tool.getName());
-            
-        // Get user and validate it exists
-        log.info("Looking up user with ID: {}", request.getUserId());
+                .orElseThrow(() -> new IllegalArgumentException("Tool not found with ID: " + request.getRentalId()));
+
+        // Get user
         User user = userRepository.findById(request.getUserId())
-            .orElseThrow(() -> {
-                log.error("User not found with ID: {}", request.getUserId());
-                return new IllegalArgumentException("User not found");
-            });
-        log.info("Found user with ID: {}", user.getId());
-            
-        // Check if tool has sufficient stock
+                .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + request.getUserId()));
+
+        // Check stock
         if (tool.getStockQuantity() < request.getQuantity()) {
-            log.error("Insufficient stock for tool {}: requested={}, available={}", 
-                     tool.getName(), request.getQuantity(), tool.getStockQuantity());
-            throw new IllegalArgumentException("Insufficient stock");
+            throw new IllegalArgumentException("Insufficient stock for tool: " + tool.getName());
         }
 
-        // Calculate total cost
+        // Calculate days and total cost
         long days = ChronoUnit.DAYS.between(request.getRentalStart(), request.getRentalEnd());
-        if (days == 0) days = 1; // Minimum 1 day rental
+        if (days == 0) days = 1;
         BigDecimal totalCost = tool.getDailyRate().multiply(BigDecimal.valueOf(days * request.getQuantity()));
-        log.info("Calculated cost: days={}, dailyRate={}, quantity={}, totalCost={}", 
-                days, tool.getDailyRate(), request.getQuantity(), totalCost);
-                
-        // Bypass the entity completely and use direct JDBC insertion
-        try {
-            // Get the current time for added_at
-            LocalDateTime now = LocalDateTime.now();
-            
-            log.info("Direct SQL insert with: userId={}, toolId={}, quantity={}, start={}, end={}, cost={}, time={}", 
-                request.getUserId(), 
-                request.getRentalId(), 
-                request.getQuantity(),
-                request.getRentalStart(), 
-                request.getRentalEnd(), 
-                totalCost,
-                now);
-            
-            // Use JDBC Template directly - completely bypasses all JPA/Hibernate mapping
-            String sql = "INSERT INTO rental_cart (user_id, tool_id, quantity, rental_start, rental_end, total_cost, added_at) " +
-                         "VALUES (?, ?, ?, ?, ?, ?, ?)";
-                         
-            jdbcTemplate.update(sql, 
-                request.getUserId(),
-                request.getRentalId(), // Using rentalId directly from the request, which is actually the tool ID
-                request.getQuantity(),
-                request.getRentalStart(),
-                request.getRentalEnd(),
-                totalCost,
-                now
-            );
-            
-            log.info("Successfully inserted rental cart using JDBC");
-        } catch (Exception e) {
-            log.error("Error inserting rental cart using JDBC", e);
-            throw new IllegalArgumentException("Failed to save rental to cart: " + e.getMessage());
+
+        // Create composite key
+        RentalCartKey id = new RentalCartKey(request.getUserId(), request.getRentalId());
+
+        // Check if rental item already exists in the cart
+        RentalCart rentalCart = rentalCartRepository.findById(id).orElse(null);
+
+        if (rentalCart != null) {
+            // Update existing cart item
+            rentalCart.setQuantity(request.getQuantity());
+            rentalCart.setRentalStart(request.getRentalStart());
+            rentalCart.setRentalEnd(request.getRentalEnd());
+            rentalCart.setTotalCost(totalCost);
+            rentalCart.setAddedAt(LocalDateTime.now());
+
+            log.info("Updated existing rental cart for user {} tool {}", request.getUserId(), request.getRentalId());
+        } else {
+            // Create new rental cart item
+            rentalCart = RentalCart.builder()
+                    .id(id)
+                    .user(user)
+                    .tool(tool)
+                    .quantity(request.getQuantity())
+                    .rentalStart(request.getRentalStart())
+                    .rentalEnd(request.getRentalEnd())
+                    .totalCost(totalCost)
+                    .addedAt(LocalDateTime.now())
+                    .build();
+
+            log.info("Created new rental cart for user {} tool {}", request.getUserId(), request.getRentalId());
         }
-        
-        log.info("Successfully added/updated rental {} to cart of user {} qty {}", 
-                request.getRentalId(), request.getUserId(), request.getQuantity());
+
+        // Save using JPA
+        rentalCartRepository.save(rentalCart);
+        log.info("Saved rental cart successfully for user {} tool {} qty {}",
+                request.getUserId(), request.getRentalId(), request.getQuantity());
     }
 
     /**
@@ -247,25 +244,25 @@ public class CartService {
         if (request.getQuantity() == null || request.getQuantity() <= 0) {
             throw new IllegalArgumentException("Quantity must be greater than zero");
         }
-        
+
         // Create composite key for product cart
         ProductCartKey id = new ProductCartKey(userId, productId);
-        
+
         // Find cart item and validate it exists
         ProductCart productCart = productCartRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Item not found in cart"));
-            
+
         // Check if product has sufficient stock
         if (productCart.getProduct().getQuantity() < request.getQuantity()) {
             throw new IllegalArgumentException("Insufficient stock");
         }
-        
+
         // Update quantity
         productCart.setQuantity(request.getQuantity());
-        
+
         // Save to database
         productCartRepository.save(productCart);
-        
+
         log.info("Updated product cart for user {} product {} qty {}", userId, productId, request.getQuantity());
     }
 
@@ -281,24 +278,23 @@ public class CartService {
         if (request.getQuantity() == null || request.getQuantity() <= 0) {
             throw new IllegalArgumentException("Quantity must be greater than zero");
         }
-        
-        if (request.getRentalStart() == null || request.getRentalEnd() == null || 
+
+        if (request.getRentalStart() == null || request.getRentalEnd() == null ||
             !request.getRentalStart().isBefore(request.getRentalEnd())) {
             throw new IllegalArgumentException("Invalid rental dates");
         }
-        
+
         // Create composite key for rental cart
         RentalCartKey id = new RentalCartKey(userId, toolId);
-        
+
         // Find cart item and validate it exists
         RentalCart rentalCart = rentalCartRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Item not found in cart"));
 
-        // Ensure corresponding tool exists
-        Tool tool = toolRepository.findById(rentalId)
-            .orElseThrow(() -> new IllegalArgumentException("Tool not found"));
+        // Get the tool directly from the cart relationship
+        Tool tool = rentalCart.getTool();
 
-        // Check stock availability
+        // Check if tool has sufficient stock
         if (tool.getStockQuantity() < request.getQuantity()) {
             throw new IllegalArgumentException("Insufficient stock");
         }
@@ -310,13 +306,12 @@ public class CartService {
 
         // Calculate total cost
         long days = ChronoUnit.DAYS.between(request.getRentalStart(), request.getRentalEnd());
-        if (days < 0) days = 0;
         BigDecimal totalCost = tool.getDailyRate().multiply(BigDecimal.valueOf(days * request.getQuantity()));
         rentalCart.setTotalCost(totalCost);
 
         // Save to database
         rentalCartRepository.save(rentalCart);
-        
+
         log.info("Updated rental cart for user {} tool {} qty {}", userId, toolId, request.getQuantity());
     }
 
@@ -345,57 +340,58 @@ public class CartService {
     /**
      * Process the checkout for a user's cart
      * @param userId the ID of the user
-     * @return The cleared cart
      */
     @Transactional
     public void clearCart(Long userId) {
         // Delete all product cart items for the user
         List<ProductCart> productCarts = productCartRepository.findByIdUserId(userId);
         productCartRepository.deleteAll(productCarts);
-        
+
         // Delete all rental cart items for the user
         List<RentalCart> rentalCarts = rentalCartRepository.findByIdUserId(userId);
         rentalCartRepository.deleteAll(rentalCarts);
-        
+
         log.info("Cleared cart for user {}", userId);
     }
 
     /**
-     * Checkout all rental items in a user's cart
+     * Process rentals from a user's cart and create rental records
      * @param userId the ID of the user
      * @return List of created rental entities
      */
     @Transactional
-    public List<com.SRVK.Hardware.entity.Rental> checkoutRentals(Long userId) {
-        // Get rental carts for user
+    public List<RentalOrder> checkoutRentals(Long userId) {
+        // Get all rental cart items for the user
         List<RentalCart> rentalCarts = rentalCartRepository.findByIdUserId(userId);
-        List<com.SRVK.Hardware.entity.Rental> createdRentals = new ArrayList<>();
-        
+
+        List<RentalOrder> createdRentalOrders = new ArrayList<>();
+
         if (rentalCarts.isEmpty()) {
-            return createdRentals;
+            return createdRentalOrders;
         }
-        
-        // Create rentals from each rental cart item
+
+        // Create rental orders using existing validation logic in RentalService
         for (RentalCart item : rentalCarts) {
             Long toolId = item.getId().getToolId();
-            
+
             if (toolId == null) {
                 throw new RuntimeException("Missing toolId for rental cart item");
             }
 
-            com.SRVK.Hardware.entity.Rental rental = rentalService.createRental(
+            // Use the rental service to create proper rental order records
+            RentalOrder rentalOrder = rentalService.createRental(
                     userId,
                     toolId,
-                    rc.getRentalStart(),
-                    rc.getRentalEnd(),
-                    rc.getQuantity()
+                    item.getRentalStart(),
+                    item.getRentalEnd(),
+                    item.getQuantity()
             );
-            createdRentals.add(rental);
+            createdRentalOrders.add(rentalOrder);
         }
 
-        // Remove rental items from cart
+        // Remove all rental items from the cart
         rentalCartRepository.deleteAll(rentalCarts);
-        
-        return createdRentals;
+
+        return createdRentalOrders;
     }
 }

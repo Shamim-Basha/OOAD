@@ -10,12 +10,12 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "rentals")
+@Table(name = "rental_orders")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Rental {
+public class RentalOrder {
 
     public enum RentalStatus {
         ACTIVE, RETURNED
@@ -49,5 +49,3 @@ public class Rental {
     @Builder.Default
     private RentalStatus status = RentalStatus.ACTIVE;
 }
-
-

@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 
 @Entity
 @Table(name = "order_items")
@@ -24,14 +23,10 @@ public class OrderItem {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id")
-    private Product product; // null if rental
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "rental_id")
-    private Rental rental; // null if purchase
+    private Product product;
     
-    @Column(name = "tool_id")
-    private Long toolId; // used when the item is a rental
+    // Tool rentals are not using the Order/OrderItem system
+    // They are managed through RentalCart -> RentalOrder
 
     @Column(nullable = false)
     private Integer quantity;
@@ -42,11 +37,8 @@ public class OrderItem {
     @Column(name = "subtotal", nullable = false)
     private BigDecimal subtotal;
 
-    @Column(name = "rental_start")
-    private LocalDate rentalStart;
-
-    @Column(name = "rental_end")
-    private LocalDate rentalEnd;
+    // Rental-related fields have been removed as tool rentals
+    // are managed through the separate RentalOrder system
 }
 
 
