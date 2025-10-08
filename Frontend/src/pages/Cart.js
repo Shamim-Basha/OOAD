@@ -287,7 +287,7 @@ const Cart = () => {
                       ...selectedProducts,
                       [`${p.userId}-${p.productId}`]: e.target.checked
                     })}
-                    style={{ marginRight: 8 }}
+                    style={{ marginRight: 8, alignSelf: 'center' }}
                   />
                   <img src={p.imageSrc} alt={p.name} style={{ width: 72, height: 72, objectFit: 'cover', borderRadius: 8 }} />
                   <div style={{ flex: 1 }}>
@@ -346,7 +346,7 @@ const Cart = () => {
                       ...selectedRentals,
                       [`${r.userId}-${r.rentalId}`]: e.target.checked
                     })}
-                    style={{ marginRight: 8 }}
+                    style={{ marginRight: 8, alignSelf: 'center' }}
                   />
                   <img src={r.imageSrc} alt={r.name} style={{ width: 72, height: 72, objectFit: 'cover', borderRadius: 8 }} />
                   <div style={{ flex: 1 }}>

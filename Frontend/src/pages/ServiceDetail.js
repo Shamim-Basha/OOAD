@@ -211,7 +211,6 @@ const ServiceDetail = () => {
   };
 
   const handleInquiry = () => {
-    // TODO: Implement inquiry functionality
     console.log('Sending inquiry for:', service);
   };
 

@@ -50,6 +50,7 @@ public class CartService {
             dto.setUserId(pc.getId().getUserId());
             dto.setProductId(pc.getId().getProductId());
             dto.setName(pc.getProduct().getName());
+            dto.setImage(pc.getProduct().getImage());
             dto.setUnitPrice(BigDecimal.valueOf(pc.getProduct().getPrice()));
             dto.setQuantity(pc.getQuantity());
             // Calculate subtotal

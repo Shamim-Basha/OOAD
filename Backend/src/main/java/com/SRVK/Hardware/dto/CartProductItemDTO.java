@@ -16,6 +16,7 @@ public class CartProductItemDTO {
     private BigDecimal unitPrice;
     private Integer quantity;
     private BigDecimal subtotal; // Added subtotal
+    private byte[] image; // Product image bytes (base64-encoded by Jackson)
 }
 
 
