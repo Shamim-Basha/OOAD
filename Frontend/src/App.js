@@ -26,7 +26,7 @@ function AppContent() {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
   return (
-    <div className="App">
+    <div className={isAdminRoute ? "App app-has-sidebar" : "App"}>
       {!isAdminRoute && <Navbar />}
       {isAdminRoute && <AdminSidebar />}
       <main>

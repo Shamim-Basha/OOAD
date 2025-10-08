@@ -10,6 +10,13 @@
   top: 0;
   z-index: 100;
 }
+
+/* When sidebar is visible, main content should be offset */
+/* Add a helper class on root to shift main */
+.app-has-sidebar main {
+  margin-left: 220px;
+  transition: margin-left 0.18s ease;
+}
 .sidebar-logo {
   font-size: 1.4rem;
   font-weight: bold;
