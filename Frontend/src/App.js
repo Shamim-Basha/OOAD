@@ -8,6 +8,7 @@ import Home from './pages/Home';
 import Services from './pages/Services';
 import ServiceDetail from './pages/ServiceDetail';
 import Products from './pages/Products';
+import ProductDetail from "./pages/ProductDetail"; 
 import Register from './pages/Register';
 import Login from './pages/Login';
 import Cart from './pages/Cart';
@@ -35,7 +36,7 @@ function AppContent() {
           <Route path="/products" element={<Products />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/contact" element={<Home />} />
-          <Route path="/product/:id" element={<Home />} />
+          <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/service/:id" element={<ServiceDetail />} />
           <Route path="/rental/:id" element={<ServiceDetail />} />
           <Route path="/register" element={<Register />} />

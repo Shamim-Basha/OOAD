@@ -69,7 +69,6 @@ const Products = () => {
 
   useEffect(() => {
     filterProducts();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [products, searchTerm, selectedCategory, priceRange, sortBy]);
 
   const filterProducts = () => {
@@ -255,9 +254,11 @@ const Products = () => {
                   </div>
 
                   <div className="product-actions">
-                    <Link to={`/product/${product.id}`} className="btn btn-outline">
+                    {/* ✅ Fixed: link to ProductDetails page */}
+                    <Link to={`/products/${product.id}`} className="btn btn-outline">
                       <FaEye /> View Details
                     </Link>
+
                     <button
                       className="btn btn-primary"
                       onClick={() => addToCart(product)}
