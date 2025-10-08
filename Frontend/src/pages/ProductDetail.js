@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
+import { convertByteToImage } from '../utils/imageHelpers';
 import { FaStar, FaShoppingCart, FaHeart, FaShare, FaTruck, FaShieldAlt, FaArrowLeft } from 'react-icons/fa';
 import './ProductDetail.css';
 
@@ -17,8 +18,8 @@ const ProductDetail = () => {
     axios
       .get(`http://localhost:8080/api/products/${id}`)
       .then((res) => {
-        const data = res.data;
-        const imageSrc = data.image ? `data:image/png;base64,${data.image}` : placeholderImage;
+  const data = res.data;
+  const imageSrc = convertByteToImage(data.image, placeholderImage);
 
         
         const formattedProduct = {
