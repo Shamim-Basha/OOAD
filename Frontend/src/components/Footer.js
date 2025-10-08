@@ -67,6 +67,9 @@ const Footer = () => {
                 <span>info@lankahardware.lk</span>
               </div>
             </div>
+          </div>
+
+          <div className="footer-section">
             <div className="business-hours">
               <h5>Business Hours</h5>
               <p>Monday - Friday: 8:00 AM - 6:00 PM</p>

@@ -100,14 +100,6 @@ const Navbar = () => {
         </div>
 
         <div className="navbar-actions">
-          <div className="search-box">
-            <FaSearch className="search-icon" />
-            <input 
-              type="text" 
-              placeholder="Search products..." 
-              className="search-input"
-            />
-          </div>
           
           <Link to="/cart" className="cart-icon">
             <FaShoppingCart />
