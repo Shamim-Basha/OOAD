@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { FaSearch, FaShoppingCart, FaEye } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 import './Products.css';
 import axios from 'axios';
 
@@ -13,6 +14,11 @@ const Products = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [priceRange, setPriceRange] = useState([0, 100000]);
   const [sortBy, setSortBy] = useState('name');
+
+  const USER = localStorage.getItem('user');
+  const USER_ID = USER? JSON.parse(USER)["id"] : null;
+
+  const navigate = useNavigate();
 
   const categories = [
     { value: 'all', label: 'All Categories' },
@@ -30,6 +36,7 @@ const Products = () => {
   }
 
   useEffect(() => {
+    
     axios.get("http://localhost:8080/api/products")
       .then((res) => {
         const prods = (res.data || []).map(p => {
@@ -101,9 +108,28 @@ const Products = () => {
     return `Rs. ${price.toLocaleString()}`;
   };
 
-  const addToCart = (product) => {
-    console.log('Added to cart:', product);
-    // TODO: connect with actual cart API later
+  const addToCart = async (product) => {
+    if(USER == null){
+      navigate("/login");
+      return;
+    }
+    try {
+      console.log('Adding to cart:', product);
+      const payload = {
+        userId: Number(USER_ID),
+        productId: product.id,
+        quantity: 1
+      };
+      
+      const res = await axios.post("http://localhost:8080/api/cart/product/add", payload);
+      // alert('Item added to cart successfully!');
+      console.log('Cart response:', res.data);
+      navigate('/cart');
+    } catch (error) {
+      const message = error?.response?.data?.message || error?.message || 'Failed to add item to cart';
+      alert(message);
+      console.error('Error adding to cart:', error);
+    }
   };
 
   if (loading) {

@@ -126,10 +126,6 @@ const Login = () => {
           </div>
 
           <div className="form-options">
-            <label className="remember-me">
-              <input type="checkbox" />
-              Remember me
-            </label>
             <Link to="/forgot-password" className="forgot-password">
               Forgot password?
             </Link>

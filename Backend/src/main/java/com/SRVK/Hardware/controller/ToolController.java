@@ -11,7 +11,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/tools")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "*")
 public class ToolController {
 
     private final ToolRepository toolRepository;
@@ -30,3 +30,4 @@ public class ToolController {
 }
 
 
+// 

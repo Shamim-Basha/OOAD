@@ -1,7 +1,6 @@
 package com.SRVK.Hardware.dto;
 
 import lombok.Data;
-import lombok.AllArgsConstructor;
 
 @Data
 public class RegisterDTO {

@@ -1,0 +1,15 @@
+package com.SRVK.Hardware.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class CartKeyRental {
+    private Long userId;
+    private Long toolId;
+}

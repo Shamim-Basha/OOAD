@@ -12,6 +12,22 @@ const ServiceDetail = () => {
   const [rentalDays, setRentalDays] = useState(1);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [quantity, setQuantity] = useState(1);
+
+  // Calculate rental days from selected dates
+  useEffect(() => {
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      const timeDiff = end.getTime() - start.getTime();
+      const daysDiff = Math.max(1, Math.round(timeDiff / (1000 * 3600 * 24))); // exclusive end date
+      if (daysDiff > 0) {
+        setRentalDays(daysDiff);
+      }
+    }
+  }, [startDate, endDate]);
+
+  // Days are strictly derived from dates; no manual +/- controls
   const [activeTab, setActiveTab] = useState('details');
 
   const navigate = useNavigate();
@@ -130,7 +146,7 @@ const ServiceDetail = () => {
 
   const calculateTotalPrice = () => {
     if (!service) return 0;
-    return service.price * rentalDays;
+    return service.price * rentalDays * quantity;
   };
 
   const fees = useMemo(() => {
@@ -140,26 +156,57 @@ const ServiceDetail = () => {
     const tax = Math.round(subtotal * 0.02);
     const total = subtotal + delivery + insurance + tax;
     return { subtotal, delivery, insurance, tax, total };
-  }, [service, rentalDays]);
+  }, [service, rentalDays, quantity]);
 
   const handleRentNow = async () => {
     if (!service) return;
+    // Basic client-side validation to match backend constraints
+    if (!startDate || !endDate) {
+      alert('Please select start and end dates.');
+      return;
+    }
+    const todayStr = new Date().toISOString().split('T')[0];
+    if (startDate < todayStr) {
+      alert('Start date cannot be in the past.');
+      return;
+    }
+    if (endDate <= startDate) {
+      alert('End date must be after start date.');
+      return;
+    }
+
     try {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
-      const userId = user?.id || 1; // fallback for demo
+      const USER = localStorage.getItem('user');
+      const userId = USER? JSON.parse(USER)["id"] : 1;
+      
+      // Add rental item to cart instead of creating rental directly
       const payload = {
-        userId: String(userId),
-        toolId: String(service.id),
-        startDate,
-        endDate
+        userId,
+        rentalId: Number(service.id), // Use service.id as rentalId for tools (backend maps this to toolId)
+        quantity: Math.max(1, Math.min(5, Number(quantity) || 1)),
+        rentalStart: startDate,
+        rentalEnd: endDate
       };
-      const res = await axios.post('http://localhost:8080/api/rentals', payload);
-      console.log('Rental created', res.data);
-      // navigate to a cart placeholder
-      navigate('/cart', { state: { rental: res.data, fees } });
+      
+      // Log full details for debugging
+      console.log('Sending rental cart add request:', JSON.stringify(payload));
+      
+      try {
+        const res = await axios.post('http://localhost:8080/api/cart/rental/add', payload);
+        console.log('Rental cart add response:', res.data);
+        alert('Item added to cart successfully!');
+        navigate('/cart');
+      } catch (apiError) {
+        console.error('API Error:', apiError);
+        console.error('Response:', apiError.response);
+        const message = apiError?.response?.data || apiError?.message || 'Failed to add item to cart';
+        alert(`Error adding to cart: ${message}`);
+      }
     } catch (e) {
-      console.error(e);
-      alert('Failed to create rental');
+      console.error('General error in handleRentNow:', e);
+      const message = e?.response?.data?.message || e?.message || 'Failed to add item to cart';
+      alert(`Error: ${message}`);
     }
   };
 
@@ -263,7 +310,14 @@ const ServiceDetail = () => {
                   <input
                     type="date"
                     value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
+                    onChange={(e) => {
+                      const selectedEndDate = e.target.value;
+                      if (startDate && selectedEndDate <= startDate) {
+                        alert('End date must be after start date');
+                        return;
+                      }
+                      setEndDate(selectedEndDate);
+                    }}
                     className="form-input"
                     min={startDate || new Date().toISOString().split('T')[0]}
                   />
@@ -272,30 +326,43 @@ const ServiceDetail = () => {
 
               <div className="form-group">
                 <label>Number of Days</label>
-                <div className="days-selector">
+                <div className="days-display" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ padding: '8px 12px', border: '1px solid #ddd', borderRadius: '4px', background: '#f8f9fa' }}>
+                    {rentalDays}
+                  </span>
+                  <small style={{ color: '#666' }}>Calculated from selected dates</small>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Quantity</label>
+                <div className="quantity-selector" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <button
+                    type="button"
                     className="days-btn"
-                    onClick={() => setRentalDays(Math.max(1, rentalDays - 1))}
-                    disabled={rentalDays <= 1}
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    disabled={quantity <= 1}
                   >
                     -
                   </button>
                   <input
                     type="number"
-                    value={rentalDays}
-                    onChange={(e) => setRentalDays(Math.max(1, parseInt(e.target.value) || 1))}
+                    value={quantity}
+                    onChange={(e) => setQuantity(Math.max(1, Math.min(5, parseInt(e.target.value) || 1)))}
                     className="days-input"
                     min="1"
-                    max="30"
+                    max="5"
                   />
                   <button
+                    type="button"
                     className="days-btn"
-                    onClick={() => setRentalDays(Math.min(30, rentalDays + 1))}
-                    disabled={rentalDays >= 30}
+                    onClick={() => setQuantity(Math.min(5, quantity + 1))}
+                    disabled={quantity >= 5}
                   >
                     +
                   </button>
                 </div>
+                <small style={{ color: '#666' }}>Limited rental quantity (max 5)</small>
               </div>
 
               <div className="rental-summary">
@@ -305,7 +372,7 @@ const ServiceDetail = () => {
                 </div>
                 <div className="summary-item">
                   <span>Number of Days:</span>
-                  <span>{rentalDays}</span>
+                  <span>{rentalDays} {rentalDays === 1 ? 'day' : 'days'}</span>
                 </div>
                 <div className="summary-item">
                   <span>Subtotal:</span>
@@ -333,7 +400,7 @@ const ServiceDetail = () => {
                 <button
                   className="btn btn-primary rent-btn"
                   onClick={handleRentNow}
-                  disabled={!service.available}
+                  disabled={!service.available || !startDate || !endDate}
                 >
                   Rent Now
                 </button>

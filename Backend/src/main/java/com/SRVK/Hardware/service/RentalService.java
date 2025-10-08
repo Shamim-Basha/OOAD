@@ -1,8 +1,8 @@
 package com.SRVK.Hardware.service;
 
-import com.SRVK.Hardware.entity.Rental;
+import com.SRVK.Hardware.entity.RentalOrder;
 import com.SRVK.Hardware.entity.Tool;
-import com.SRVK.Hardware.repository.RentalRepository;
+import com.SRVK.Hardware.repository.RentalOrderRepository;
 import com.SRVK.Hardware.repository.ToolRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,11 +17,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RentalService {
 
-    private final RentalRepository rentalRepository;
+    private final RentalOrderRepository rentalOrderRepository;
     private final ToolRepository toolRepository;
 
     @Transactional
-    public Rental createRental(Long userId, Long toolId, LocalDate startDate, LocalDate endDate, Integer quantity) {
+    public RentalOrder createRental(Long userId, Long toolId, LocalDate startDate, LocalDate endDate, Integer quantity) {
         // Validate input
         if (startDate == null || endDate == null) {
             throw new IllegalArgumentException("Start date and end date are required");
@@ -41,31 +41,34 @@ public class RentalService {
                 .orElseThrow(() -> new IllegalArgumentException("Tool not found"));
 
         // Check if tool has enough stock
-        if (!tool.hasEnoughStock(quantity)) {
+        if (tool.getStockQuantity() < quantity) {
             throw new IllegalArgumentException("Insufficient stock. Available: " + tool.getStockQuantity() + ", Requested: " + quantity);
         }
 
         // Check for overlapping rentals and calculate required stock
-        List<Rental> overlappingRentals = rentalRepository.findOverlappingRentals(toolId, startDate, endDate);
+        List<RentalOrder> overlappingRentals = rentalOrderRepository.findOverlappingRentals(toolId, startDate, endDate);
         int totalRentedQuantity = overlappingRentals.stream()
-                .mapToInt(Rental::getQuantity)
+                .mapToInt(RentalOrder::getQuantity)
                 .sum();
 
         // Check if there's enough stock considering existing rentals
         if (totalRentedQuantity + quantity > tool.getStockQuantity()) {
             throw new IllegalArgumentException("Not enough available stock for the requested dates. " +
-                    "Requested: " + quantity + ", Already rented: " + totalRentedQuantity + 
+                    "Requested: " + quantity + ", Already rented: " + totalRentedQuantity +
                     ", Total stock: " + tool.getStockQuantity());
         }
 
         // Calculate total cost
-        long days = ChronoUnit.DAYS.between(startDate, endDate) + 1;
+        // Note: ChronoUnit.DAYS.between calculates the difference between dates
+        // For example: between 2025-01-01 and 2025-01-02 = 1 day (not 2)
+        long days = ChronoUnit.DAYS.between(startDate, endDate);
+        if (days == 0) days = 1; // Minimum 1 day rental
         BigDecimal total = tool.getDailyRate()
                 .multiply(BigDecimal.valueOf(days))
                 .multiply(BigDecimal.valueOf(quantity));
 
         // Create rental
-        Rental rental = Rental.builder()
+        RentalOrder rentalOrder = RentalOrder.builder()
                 .userId(userId)
                 .toolId(toolId)
                 .startDate(startDate)
@@ -73,16 +76,29 @@ public class RentalService {
                 .quantity(quantity)
                 .totalCost(total)
                 .build();
-        
-        return rentalRepository.save(rental);
+
+        return rentalOrderRepository.save(rentalOrder);
     }
 
-    public List<Rental> getAll() {
-        return rentalRepository.findAll();
+    public List<RentalOrder> getAll() {
+        return rentalOrderRepository.findAll();
+    }
+
+    public RentalOrder getById(Long id) {
+        return rentalOrderRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Rental order not found"));
+    }
+
+    public List<RentalOrder> getByUser(Long userId) {
+        return rentalOrderRepository.findByUserId(userId);
+    }
+
+    public List<RentalOrder> getByTool(Long toolId) {
+        return rentalOrderRepository.findByToolId(toolId);
     }
 
     @Transactional
-    public Rental updateDates(Long id, LocalDate startDate, LocalDate endDate) {
+    public RentalOrder updateDates(Long id, LocalDate startDate, LocalDate endDate) {
         // Validate input
         if (startDate == null || endDate == null) {
             throw new IllegalArgumentException("Start date and end date are required");
@@ -94,43 +110,59 @@ public class RentalService {
             throw new IllegalArgumentException("Cannot rent tools for past dates");
         }
 
-        // Find rental
-        Rental rental = rentalRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Rental not found"));
+        // Find rental order
+        RentalOrder rentalOrder = rentalOrderRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Rental order not found"));
 
         // Find tool
-        Tool tool = toolRepository.findById(rental.getToolId())
+        Tool tool = toolRepository.findById(rentalOrder.getToolId())
                 .orElseThrow(() -> new IllegalArgumentException("Tool not found"));
 
         // Check for overlapping rentals excluding this rental
-        List<Rental> overlappingRentals = rentalRepository.findOverlappingRentalsExcluding(
-                rental.getToolId(), startDate, endDate, id);
-        
+        List<RentalOrder> overlappingRentals = rentalOrderRepository.findOverlappingRentalsExcluding(
+                rentalOrder.getToolId(), startDate, endDate, id);
+
         int totalRentedQuantity = overlappingRentals.stream()
-                .mapToInt(Rental::getQuantity)
+                .mapToInt(RentalOrder::getQuantity)
                 .sum();
 
         // Check if there's enough stock considering existing rentals
-        if (totalRentedQuantity + rental.getQuantity() > tool.getStockQuantity()) {
+        if (totalRentedQuantity + rentalOrder.getQuantity() > tool.getStockQuantity()) {
             throw new IllegalArgumentException("Not enough available stock for the requested dates. " +
-                    "Requested: " + rental.getQuantity() + ", Already rented: " + totalRentedQuantity + 
+                    "Requested: " + rentalOrder.getQuantity() + ", Already rented: " + totalRentedQuantity +
                     ", Total stock: " + tool.getStockQuantity());
         }
 
-        // Update rental
-        long days = ChronoUnit.DAYS.between(startDate, endDate) + 1;
-        rental.setStartDate(startDate);
-        rental.setEndDate(endDate);
-        rental.setTotalCost(tool.getDailyRate()
+        // Update rental order
+        long days = ChronoUnit.DAYS.between(startDate, endDate);
+        if (days == 0) days = 1; // Minimum 1 day rental
+
+        rentalOrder.setStartDate(startDate);
+        rentalOrder.setEndDate(endDate);
+        rentalOrder.setTotalCost(tool.getDailyRate()
                 .multiply(BigDecimal.valueOf(days))
-                .multiply(BigDecimal.valueOf(rental.getQuantity())));
-        
-        return rentalRepository.save(rental);
+                .multiply(BigDecimal.valueOf(rentalOrder.getQuantity())));
+
+        return rentalOrderRepository.save(rentalOrder);
+    }
+
+    @Transactional
+    public void returnRental(Long id) {
+        RentalOrder rentalOrder = rentalOrderRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Rental order not found"));
+
+        rentalOrder.setStatus(RentalOrder.RentalStatus.RETURNED);
+        rentalOrderRepository.save(rentalOrder);
+
+        // Increase tool stock
+        Tool tool = toolRepository.findById(rentalOrder.getToolId())
+                .orElseThrow(() -> new IllegalArgumentException("Tool not found"));
+
+        tool.setStockQuantity(tool.getStockQuantity() + rentalOrder.getQuantity());
+        toolRepository.save(tool);
     }
 
     public void delete(Long id) {
-        rentalRepository.deleteById(id);
+        rentalOrderRepository.deleteById(id);
     }
 }
-
-

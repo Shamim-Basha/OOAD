@@ -10,12 +10,16 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "rentals")
+@Table(name = "rental_orders")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Rental {
+public class RentalOrder {
+
+    public enum RentalStatus {
+        ACTIVE, RETURNED
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -39,6 +43,9 @@ public class Rental {
 
     @Column(nullable = false)
     private BigDecimal totalCost;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private RentalStatus status = RentalStatus.ACTIVE;
 }
-
-

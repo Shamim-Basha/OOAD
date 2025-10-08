@@ -2,7 +2,7 @@ package com.SRVK.Hardware.controller;
 
 import com.SRVK.Hardware.dto.CreateRentalRequest;
 import com.SRVK.Hardware.dto.UpdateRentalRequest;
-import com.SRVK.Hardware.entity.Rental;
+import com.SRVK.Hardware.entity.RentalOrder;
 import com.SRVK.Hardware.service.RentalService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,8 +20,8 @@ public class RentalController {
     private final RentalService rentalService;
 
     @PostMapping
-    public ResponseEntity<Rental> create(@Valid @RequestBody CreateRentalRequest request) {
-        Rental rental = rentalService.createRental(
+    public ResponseEntity<RentalOrder> create(@Valid @RequestBody CreateRentalRequest request) {
+        RentalOrder rental = rentalService.createRental(
                 request.getUserId(),
                 request.getToolId(),
                 request.getStartDate(),
@@ -32,13 +32,31 @@ public class RentalController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Rental>> all() {
+    public ResponseEntity<List<RentalOrder>> all() {
         return ResponseEntity.ok(rentalService.getAll());
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<RentalOrder> getById(@PathVariable Long id) {
+        RentalOrder rental = rentalService.getById(id);
+        return ResponseEntity.ok(rental);
+    }
+
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<RentalOrder>> getByUser(@PathVariable Long userId) {
+        List<RentalOrder> rentals = rentalService.getByUser(userId);
+        return ResponseEntity.ok(rentals);
+    }
+
+    @GetMapping("/tool/{toolId}")
+    public ResponseEntity<List<RentalOrder>> getByTool(@PathVariable Long toolId) {
+        List<RentalOrder> rentals = rentalService.getByTool(toolId);
+        return ResponseEntity.ok(rentals);
+    }
+
     @PutMapping("/{id}")
-    public ResponseEntity<Rental> update(@PathVariable Long id, @Valid @RequestBody UpdateRentalRequest request) {
-        Rental rental = rentalService.updateDates(id, request.getStartDate(), request.getEndDate());
+    public ResponseEntity<RentalOrder> update(@PathVariable Long id, @Valid @RequestBody UpdateRentalRequest request) {
+        RentalOrder rental = rentalService.updateDates(id, request.getStartDate(), request.getEndDate());
         return ResponseEntity.ok(rental);
     }
 
