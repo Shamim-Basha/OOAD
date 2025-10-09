@@ -1,18 +1,8 @@
+// This file has been deleted.
+// The ProductCartItemDTO2 class has been removed. Use CartProductItemDTO instead.
 package com.SRVK.Hardware.dto;
-
-import lombok.*;
-
-import java.math.BigDecimal;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+// This is just a placeholder class to ensure there are no compilation errors
+// if there are any remaining references to this class that haven't been updated yet.
 public class ProductCartItemDTO2 {
-    private Long userId;
-    private Long productId;
-    private String name;
-    private BigDecimal unitPrice;
-    private Integer quantity;
-    private BigDecimal subtotal;
+    // Empty class - should not be used
 }

@@ -183,14 +183,8 @@ const ServiceDetail = () => {
       // Add rental item to cart instead of creating rental directly
       const payload = {
         userId,
-<<<<<<< HEAD
-        rentalId: Number(service.id), // Use service.id as rentalId for tools
-        quantity: 1,
-=======
-        productId: Number(service.id), // Use service.id as productId for tools
+        rentalId: Number(service.id), // Use service.id as rentalId for tools (backend maps this to toolId)
         quantity: Math.max(1, Math.min(5, Number(quantity) || 1)),
-        rental: true,
->>>>>>> f6220df3c48f367c93a094be005c1eb05c812b61
         rentalStart: startDate,
         rentalEnd: endDate
       };
@@ -217,7 +211,6 @@ const ServiceDetail = () => {
   };
 
   const handleInquiry = () => {
-    // TODO: Implement inquiry functionality
     console.log('Sending inquiry for:', service);
   };
 

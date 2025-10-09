@@ -295,7 +295,7 @@ public class CartService {
             .orElseThrow(() -> new IllegalArgumentException("Item not found in cart"));
 
         // Ensure corresponding tool exists
-        Tool tool = toolRepository.findById(rentalId)
+        Tool tool = toolRepository.findById(toolId)
             .orElseThrow(() -> new IllegalArgumentException("Tool not found"));
 
         // Check stock availability
@@ -386,9 +386,9 @@ public class CartService {
             com.SRVK.Hardware.entity.Rental rental = rentalService.createRental(
                     userId,
                     toolId,
-                    rc.getRentalStart(),
-                    rc.getRentalEnd(),
-                    rc.getQuantity()
+                    item.getRentalStart(),
+                    item.getRentalEnd(),
+                    item.getQuantity()
             );
             createdRentals.add(rental);
         }

@@ -1,21 +1,8 @@
+// This file has been deleted.
+// The RentalCartItemDTO2 class has been removed. Use CartRentalItemDTO instead.
 package com.SRVK.Hardware.dto;
-
-import lombok.*;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+// This is just a placeholder class to ensure there are no compilation errors
+// if there are any remaining references to this class that haven't been updated yet.
 public class RentalCartItemDTO2 {
-    private Long userId;
-    private Long rentalId;
-    private String name;
-    private BigDecimal dailyRate;
-    private Integer quantity;
-    private LocalDate rentalStart;
-    private LocalDate rentalEnd;
-    private BigDecimal subtotal;
+    // Empty class - should not be used
 }

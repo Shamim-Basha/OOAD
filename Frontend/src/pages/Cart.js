@@ -253,11 +253,13 @@ const Cart = () => {
         </div>
 
         <div className="cart-content">
-          {/* Products to Purchase */}
-          <div className="cart-items">
-            <div className="cart-items-header">
-              <h2>Products to Purchase ({products.length})</h2>
-              {products.length > 0 && (
+          {/* Cart Items Wrapper - Added for better layout */}
+          <div className="cart-items-wrapper">
+            {/* Products to Purchase */}
+            <div className="cart-items">
+              <div className="cart-items-header">
+                <h2>Products to Purchase ({products.length})</h2>
+                {products.length > 0 && (
                 <label style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
                   <input
                     type="checkbox"
@@ -312,10 +314,10 @@ const Cart = () => {
           </div>
 
           {/* Tools to Rent */}
-          <div className="cart-items" style={{ marginTop: 24 }}>
-            <div className="cart-items-header">
-              <h2>Tools to Rent ({rentals.length})</h2>
-              {rentals.length > 0 && (
+            <div className="cart-items" style={{ marginTop: 24 }}>
+              <div className="cart-items-header">
+                <h2>Tools to Rent ({rentals.length})</h2>
+                {rentals.length > 0 && (
                 <label style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
                   <input
                     type="checkbox"
@@ -372,6 +374,7 @@ const Cart = () => {
                 </button>
               </div>
             ))}
+            </div>
           </div>
 
           {/* Cart Summary */}

@@ -28,7 +28,6 @@ public class CheckoutService {
     private final UserRepository userRepository;
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
-    private final PaymentRepository paymentRepository;
     private final PaymentService paymentService;
 
     @Transactional
@@ -131,7 +130,7 @@ public class CheckoutService {
         Order order = Order.builder()
                 .user(user)
                 .totalAmount(total)
-                .status("CREATED")
+                .status(Order.STATUS_CREATED)
                 .createdAt(LocalDateTime.now())
                 .build();
         order = orderRepository.save(order);
@@ -141,23 +140,21 @@ public class CheckoutService {
             orderItemRepository.save(oi);
         }
 
-        // Payment
+        // Process payment directly in the Order entity
         PaymentService.PaymentResult result = paymentService.charge(total, request.getPaymentMethod(), request.getPaymentDetails());
         if (!result.isSuccess()) {
             throw new IllegalStateException("Payment failed: " + result.getMessage());
         }
 
-        Payment payment = Payment.builder()
-                .order(order)
-                .amount(total)
-                .method(request.getPaymentMethod())
-                .status("SUCCESS")
-                .transactionId(result.getTransactionId())
-                .createdAt(LocalDateTime.now())
-                .build();
-        paymentRepository.save(payment);
-
-        order.setStatus("PAID");
+        // Update order with payment information
+        order.setPaymentAmount(total);
+        order.setPaymentMethod(request.getPaymentMethod());
+        order.setPaymentStatus(Order.PAYMENT_STATUS_SUCCESS);
+        order.setTransactionId(result.getTransactionId());
+        order.setPaymentDate(LocalDateTime.now());
+        order.setUpdatedAt(LocalDateTime.now());
+        order.setStatus(Order.STATUS_PAID);
+        
         orderRepository.save(order);
 
         // Save all rental records now that payment is confirmed

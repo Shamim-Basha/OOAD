@@ -6,6 +6,11 @@ CREATE TABLE orders (
     status VARCHAR(50) NOT NULL,
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP,
+    payment_amount DECIMAL(10,2),
+    payment_method VARCHAR(50),
+    payment_status VARCHAR(50),
+    transaction_id VARCHAR(255),
+    payment_date TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
@@ -62,18 +67,6 @@ CREATE TABLE rentals (
     status VARCHAR(50) NOT NULL DEFAULT 'ACTIVE',
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (tool_id) REFERENCES tools(id)
-);
-
--- Payments table
-CREATE TABLE payments (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    order_id BIGINT NOT NULL,
-    amount DECIMAL(10,2) NOT NULL,
-    method VARCHAR(50) NOT NULL,
-    status VARCHAR(50) NOT NULL,
-    transaction_id VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP NOT NULL,
-    FOREIGN KEY (order_id) REFERENCES orders(id)
 );
 
 -- Index for frequently accessed columns
