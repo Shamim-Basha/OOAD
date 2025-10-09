@@ -1,44 +1,48 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { convertByteToImage } from '../utils/imageHelpers';
 import { FaTrash, FaArrowLeft, FaShoppingCart, FaCreditCard } from 'react-icons/fa';
 import './Cart.css';
 
 const Cart = () => {
   const [products, setProducts] = useState([]);
   const [rentals, setRentals] = useState([]);
-  const [selectedProducts, setSelectedProducts] = useState({}); // key: `${userId}-${productId}`
+  const [selectedProducts, setSelectedProducts] = useState({}); // key: `${userId}-${productId}` - Updated layout to include images
   const [selectedRentals, setSelectedRentals] = useState({}); // key: `${userId}-${rentalId}`
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
   const USER = localStorage.getItem('user');
-  const USER_ID = USER? JSON.parse(USER)["id"] : 1;
+  const USER_ID = USER? JSON.parse(USER)["id"] : null;
 
-  const loadCart = () => {
+  const placeholderImage = 'https://via.placeholder.com/80?text=No+Image';
+
+  const loadCart = async () => {
     setLoading(true);
     setError('');
-    fetch(`${API_BASE}/cart/${USER_ID}`)
-      .then(async (res) => {
-        if (!res.ok) {
-          const text = await res.text();
-          throw new Error(text || 'Failed to load cart');
-        }
-        return res.json();
-      })
-      .then((data) => {
-        console.log('Cart data received:', data); // Debugging
-        
-        const prod = (data.products || []).map(p => ({
+    try {
+      const res = await axios.get(`${API_BASE}/cart/${USER_ID}`);
+      const data = res.data;
+      console.log('Cart data received:', data); // Debugging
+
+      const prod = (data.products || []).map(p => {
+        const imageRaw = p.image || p.productImage || p.imageSrc || null;
+        return ({
           userId: p.userId,
           productId: p.productId,
           name: p.productName || p.name, // Handle both field names
           unitPrice: Number(p.unitPrice || 0),
           quantity: p.quantity,
-          subtotal: Number(p.subtotal || (p.unitPrice * p.quantity) || 0)
-        }));
-        
-        const rent = (data.rentals || []).map(r => ({
+          subtotal: Number(p.subtotal || (p.unitPrice * p.quantity) || 0),
+          imageSrc: convertByteToImage(imageRaw, placeholderImage)
+        });
+      });
+
+      const rent = (data.rentals || []).map(r => {
+        const imageRaw = r.image || r.productImage || r.imageSrc || null;
+        return ({
           userId: r.userId,
           rentalId: r.rentalId,
           name: r.productName || r.name, // Handle both field names
@@ -46,26 +50,35 @@ const Cart = () => {
           quantity: r.quantity,
           rentalStart: r.rentalStart,
           rentalEnd: r.rentalEnd,
-          subtotal: Number(r.subtotal || 0)
-        }));
-        setProducts(prod);
-        setRentals(rent);
-        // default select all
-        const sp = {};
-        prod.forEach(p => { sp[`${p.userId}-${p.productId}`] = true; });
-        const sr = {};
-        rent.forEach(r => { sr[`${r.userId}-${r.rentalId}`] = true; });
-        setSelectedProducts(sp);
-        setSelectedRentals(sr);
-      })
-      .catch((err) => {
-        console.error('loadCart error', err);
-        setError('Failed to load cart');
-      })
-      .finally(() => setLoading(false));
+          subtotal: Number(r.subtotal || 0),
+          imageSrc: convertByteToImage(imageRaw, placeholderImage)
+        });
+      });
+
+      setProducts(prod);
+      setRentals(rent);
+      // default select all
+      const sp = {};
+      prod.forEach(p => { sp[`${p.userId}-${p.productId}`] = true; });
+      const sr = {};
+      rent.forEach(r => { sr[`${r.userId}-${r.rentalId}`] = true; });
+      setSelectedProducts(sp);
+      setSelectedRentals(sr);
+    } catch (err) {
+      console.error('loadCart error', err);
+      setError(err?.response?.data || 'Failed to load cart');
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
+    // Check if user is logged in
+    if (!USER) {
+      setError('Please log in to view your cart');
+      navigate('/login');
+      return;
+    }
     loadCart();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -77,51 +90,55 @@ const Cart = () => {
   }, [selectedProducts, selectedRentals]);
 
   // Update product quantity
-  const updateProductQty = (userId, productId, newQuantity) => {
+  const updateProductQty = async (userId, productId, newQuantity) => {
     if (newQuantity < 1) return;
     setError('');
-    fetch(`${API_BASE}/cart/product/${userId}/${productId}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ quantity: newQuantity })
-    })
-      .then(async (res) => { if (!res.ok) { throw new Error(await res.text()); } })
-      .then(() => loadCart())
-      .catch((err) => { console.error(err); setError('Failed to update product'); });
+    try {
+      await axios.put(`${API_BASE}/cart/product/${userId}/${productId}`, { quantity: newQuantity });
+      await loadCart();
+    } catch (err) {
+      console.error(err);
+      setError(err?.response?.data || 'Failed to update product');
+    }
   };
 
   // Update rental quantity or dates
-  const updateRental = (userId, rentalId, payload) => {
+  const updateRental = async (userId, rentalId, payload) => {
     if (payload.quantity && payload.quantity < 1) return;
     if (payload.rentalStart && payload.rentalEnd && payload.rentalStart >= payload.rentalEnd) {
       setError('Rental start must be before end');
       return;
     }
     setError('');
-    fetch(`${API_BASE}/cart/rental/${userId}/${rentalId}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    })
-      .then(async (res) => { if (!res.ok) { throw new Error(await res.text()); } })
-      .then(() => loadCart())
-      .catch((err) => { console.error(err); setError('Failed to update rental'); });
+    try {
+      await axios.put(`${API_BASE}/cart/rental/${userId}/${rentalId}`, payload);
+      await loadCart();
+    } catch (err) {
+      console.error(err);
+      setError(err?.response?.data || 'Failed to update rental');
+    }
   };
 
-  const removeProduct = (userId, productId) => {
+  const removeProduct = async (userId, productId) => {
     setError('');
-    fetch(`${API_BASE}/cart/product/${userId}/${productId}`, { method: 'DELETE' })
-      .then(async (res) => { if (!res.ok) { throw new Error(await res.text()); } })
-      .then(() => loadCart())
-      .catch((err) => { console.error(err); setError('Failed to remove product'); });
+    try {
+      await axios.delete(`${API_BASE}/cart/product/${userId}/${productId}`);
+      await loadCart();
+    } catch (err) {
+      console.error(err);
+      setError(err?.response?.data || 'Failed to remove product');
+    }
   };
 
-  const removeRental = (userId, rentalId) => {
+  const removeRental = async (userId, rentalId) => {
     setError('');
-    fetch(`${API_BASE}/cart/rental/${userId}/${rentalId}`, { method: 'DELETE' })
-      .then(async (res) => { if (!res.ok) { throw new Error(await res.text()); } })
-      .then(() => loadCart())
-      .catch((err) => { console.error(err); setError('Failed to remove rental'); });
+    try {
+      await axios.delete(`${API_BASE}/cart/rental/${userId}/${rentalId}`);
+      await loadCart();
+    } catch (err) {
+      console.error(err);
+      setError(err?.response?.data || 'Failed to remove rental');
+    }
   };
 
   const calculateSubtotal = () => {
@@ -150,9 +167,6 @@ const Cart = () => {
     return calculateSubtotal() + calculateTax();
   };
 
-  // combined list of items for summary count
-  const cartItems = [...products, ...rentals];
-
   const formatPrice = (price) => {
     return `Rs. ${price.toLocaleString()}`;
   };
@@ -160,7 +174,7 @@ const Cart = () => {
   const navigate = useNavigate();
 
   // Checkout: call backend then navigate to confirmation / checkout flow
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     setError('');
     
     const selectedProductsArr = Object.entries(selectedProducts)
@@ -194,26 +208,14 @@ const Cart = () => {
       paymentMethod: 'CARD',
       paymentDetails: 'mock-payment-4242424242424242'
     };
-    fetch(`${API_BASE}/cart/${USER_ID}/checkout`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    })
-      .then(async (res) => {
-        if (!res.ok) {
-          const text = await res.text();
-          throw new Error(text || 'Checkout failed');
-        }
-        return res.json();
-      })
-      .then((data) => {
-        console.log('Order success', data);
-        navigate('/checkout');
-      })
-      .catch((err) => {
-        console.error('checkout error', err);
-        setError('Checkout failed. Please try again.');
-      });
+    try {
+      const res = await axios.post(`${API_BASE}/cart/${USER_ID}/checkout`, body);
+      console.log('Order success', res.data);
+      navigate('/checkout');
+    } catch (err) {
+      console.error('checkout error', err);
+      setError(err?.response?.data || 'Checkout failed. Please try again.');
+    }
   };
 
   if (loading) {
@@ -277,21 +279,22 @@ const Cart = () => {
             </div>
             {products.map(p => (
               <div key={`p-${p.userId}-${p.productId}`} className="cart-item">
-                <div className="item-details" style={{ flex: 2 }}>
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={!!selectedProducts[`${p.userId}-${p.productId}`]}
-                      onChange={(e) => setSelectedProducts({
-                        ...selectedProducts,
-                        [`${p.userId}-${p.productId}`]: e.target.checked
-                      })}
-                      style={{ marginRight: 8 }}
-                    />
-                    <span className="item-name">{p.name}</span>
-                  </label>
-                  <div className="item-price">
-                    <span className="current-price">{formatPrice(p.unitPrice)}</span>
+                <div className="item-details" style={{ flex: 2, display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <input
+                    type="checkbox"
+                    checked={!!selectedProducts[`${p.userId}-${p.productId}`]}
+                    onChange={(e) => setSelectedProducts({
+                      ...selectedProducts,
+                      [`${p.userId}-${p.productId}`]: e.target.checked
+                    })}
+                    style={{ marginRight: 8, alignSelf: 'center' }}
+                  />
+                  <img src={p.imageSrc} alt={p.name} style={{ width: 72, height: 72, objectFit: 'cover', borderRadius: 8 }} />
+                  <div style={{ flex: 1 }}>
+                    <div className="item-name" style={{ fontWeight: 700 }}>{p.name}</div>
+                    <div className="item-price" style={{ marginTop: 6 }}>
+                      <span className="current-price">{formatPrice(p.unitPrice)}</span>
+                    </div>
                   </div>
                 </div>
                 <div className="item-quantity">
@@ -335,26 +338,27 @@ const Cart = () => {
             </div>
             {rentals.map(r => (
               <div key={`r-${r.userId}-${r.rentalId}`} className="cart-item">
-                <div className="item-details" style={{ flex: 2 }}>
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={!!selectedRentals[`${r.userId}-${r.rentalId}`]}
-                      onChange={(e) => setSelectedRentals({
-                        ...selectedRentals,
-                        [`${r.userId}-${r.rentalId}`]: e.target.checked
-                      })}
-                      style={{ marginRight: 8 }}
-                    />
-                    <span className="item-name">{r.name}</span>
-                  </label>
-                  <div className="item-price">
-                    <span className="current-price">{formatPrice(r.dailyRate)} / day</span>
-                  </div>
-                  <div className="rental-dates" style={{ marginTop: 8 }}>
-                    <input type="date" value={r.rentalStart || ''} onChange={(e) => updateRental(r.userId, r.rentalId, { rentalStart: e.target.value, rentalEnd: r.rentalEnd, quantity: r.quantity })} />
-                    <span style={{ margin: '0 8px' }}>to</span>
-                    <input type="date" value={r.rentalEnd || ''} onChange={(e) => updateRental(r.userId, r.rentalId, { rentalStart: r.rentalStart, rentalEnd: e.target.value, quantity: r.quantity })} />
+                <div className="item-details" style={{ flex: 2, display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <input
+                    type="checkbox"
+                    checked={!!selectedRentals[`${r.userId}-${r.rentalId}`]}
+                    onChange={(e) => setSelectedRentals({
+                      ...selectedRentals,
+                      [`${r.userId}-${r.rentalId}`]: e.target.checked
+                    })}
+                    style={{ marginRight: 8, alignSelf: 'center' }}
+                  />
+                  <img src={r.imageSrc} alt={r.name} style={{ width: 72, height: 72, objectFit: 'cover', borderRadius: 8 }} />
+                  <div style={{ flex: 1 }}>
+                    <div className="item-name" style={{ fontWeight: 700 }}>{r.name}</div>
+                    <div className="item-price" style={{ marginTop: 6 }}>
+                      <span className="current-price">{formatPrice(r.dailyRate)} / day</span>
+                    </div>
+                    <div className="rental-dates" style={{ marginTop: 8 }}>
+                      <input type="date" value={r.rentalStart || ''} onChange={(e) => updateRental(r.userId, r.rentalId, { rentalStart: e.target.value, rentalEnd: r.rentalEnd, quantity: r.quantity })} />
+                      <span style={{ margin: '0 8px' }}>to</span>
+                      <input type="date" value={r.rentalEnd || ''} onChange={(e) => updateRental(r.userId, r.rentalId, { rentalStart: r.rentalStart, rentalEnd: e.target.value, quantity: r.quantity })} />
+                    </div>
                   </div>
                 </div>
                 <div className="item-quantity">
@@ -442,31 +446,6 @@ const Cart = () => {
             {Object.values(selectedProducts).filter(Boolean).length === 0 && 
              Object.values(selectedRentals).filter(Boolean).length === 0 && 
              <p style={{ marginTop: 12, color: '#c00' }}>Please select at least one item to checkout</p>}
-          </div>
-        </div>
-
-        {/* Recommended Products - unchanged */}
-        <div className="recommended-products">
-          <h2>You might also like</h2>
-          <div className="recommended-grid">
-            <div className="recommended-item">
-              <img src="https://images.unsplash.com/photo-1581147036325-860c6c2a3b0c?w=200&h=150&fit=crop" alt="Recommended product" />
-              <h3>Dewalt Circular Saw</h3>
-              <p className="price">Rs. 45,000</p>
-              <button className="btn btn-outline">Add to Cart</button>
-            </div>
-            <div className="recommended-item">
-              <img src="https://images.unsplash.com/photo-1581147036325-860c6c2a3b0c?w=200&h=150&fit=crop" alt="Recommended product" />
-              <h3>Paint Brushes Set</h3>
-              <p className="price">Rs. 1,500</p>
-              <button className="btn btn-outline">Add to Cart</button>
-            </div>
-            <div className="recommended-item">
-              <img src="https://images.unsplash.com/photo-1581147036325-860c6c2a3b0c?w=200&h=150&fit=crop" alt="Recommended product" />
-              <h3>LED Light Bulbs Pack</h3>
-              <p className="price">Rs. 2,800</p>
-              <button className="btn btn-outline">Add to Cart</button>
-            </div>
           </div>
         </div>
       </div>

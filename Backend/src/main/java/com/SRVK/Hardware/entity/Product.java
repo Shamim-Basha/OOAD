@@ -36,6 +36,5 @@ public class Product {
     private int price;
 
     @Lob
-    @Column(columnDefinition ="MEDIUMBLOB")
     private byte[] image;
 }

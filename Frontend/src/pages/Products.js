@@ -4,6 +4,7 @@ import { FaSearch, FaShoppingCart, FaEye } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import './Products.css';
 import axios from 'axios';
+import { convertByteToImage } from '../utils/imageHelpers';
 
 const Products = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -51,7 +52,7 @@ const Products = () => {
             image: p.image ?? null
           };
           try {
-            product.imageSrc = convertByteToImage(product.image);
+            product.imageSrc = convertByteToImage(product.image, placeholderImage);
           } catch (e) {
             console.error('Error converting image for product', product.id, e);
             product.imageSrc = placeholderImage;
@@ -69,7 +70,6 @@ const Products = () => {
 
   useEffect(() => {
     filterProducts();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [products, searchTerm, selectedCategory, priceRange, sortBy]);
 
   const filterProducts = () => {
@@ -224,7 +224,7 @@ const Products = () => {
         {filteredProducts.length > 0 ? (
           <div className="products-grid">
             {filteredProducts.map(product => (
-              <div key={product.id} className="product-card">
+              <div key={product.id} className="product-card" onClick={() => navigate(`/products/${product.id}`)} style={{ cursor: 'pointer' }}>
                 <div className="product-image">
                   <img
                     src={product.imageSrc || placeholderImage}
@@ -235,7 +235,7 @@ const Products = () => {
                   )}
                 </div>
 
-                <div className="product-info">
+                <div className="product-info" onClick={(e) => e.stopPropagation()}>
                   <div className="badges">
                     <span className="category-badge">{product.category}</span>
                     {product.subCategory && <span className="subcategory-badge">{product.subCategory}</span>}
@@ -255,12 +255,14 @@ const Products = () => {
                   </div>
 
                   <div className="product-actions">
-                    <Link to={`/product/${product.id}`} className="btn btn-outline">
+                    {/* Buttons should not trigger the card click - stopPropagation above */}
+                    <Link to={`/products/${product.id}`} className="btn btn-outline" onClick={(e) => e.stopPropagation()}>
                       <FaEye /> View Details
                     </Link>
+
                     <button
                       className="btn btn-primary"
-                      onClick={() => addToCart(product)}
+                      onClick={(e) => { e.stopPropagation(); addToCart(product); }}
                       disabled={product.quantity === 0}
                     >
                       <FaShoppingCart /> Add to Cart

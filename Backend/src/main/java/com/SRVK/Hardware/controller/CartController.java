@@ -174,7 +174,7 @@ public class CartController {
         }
     }
     @PostMapping("/{userId}/checkout-rentals")
-    public ResponseEntity<java.util.List<com.SRVK.Hardware.entity.Rental>> checkoutRentals(@PathVariable Long userId) {
+    public ResponseEntity<java.util.List<com.SRVK.Hardware.entity.RentalOrder>> checkoutRentals(@PathVariable Long userId) {
         try{
             return ResponseEntity.ok(cartService.checkoutRentals(userId));
         }

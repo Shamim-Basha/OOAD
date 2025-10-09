@@ -10,6 +10,7 @@
   top: 0;
   z-index: 100;
 }
+
 .sidebar-logo {
   font-size: 1.4rem;
   font-weight: bold;
@@ -71,5 +72,9 @@
   }
   .sidebar-nav li span:not(.icon) {
     display: none;
+  }
+  /* When sidebar is collapsed on small screens, ensure main content margin matches */
+  .app-has-sidebar main {
+    margin-left: 60px;
   }
 }

@@ -6,16 +6,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CartResponseDTO {
-    private List<CartProductItemDTO> products;
-    private List<CartRentalItemDTO> rentals;
-    private BigDecimal totalAmount;
+public class OrderItemDTO {
+    private Long productId;
+    private int quantity;
+    private BigDecimal unitPrice;
+    private BigDecimal subtotal;
 }
-
-
