@@ -292,8 +292,9 @@ public class CartService {
         RentalCart rentalCart = rentalCartRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Item not found in cart"));
 
-        // Get the tool directly from the cart relationship
-        Tool tool = rentalCart.getTool();
+        // Ensure corresponding tool exists
+        Tool tool = toolRepository.findById(toolId)
+            .orElseThrow(() -> new IllegalArgumentException("Tool not found"));
 
         // Check if tool has sufficient stock
         if (tool.getStockQuantity() < request.getQuantity()) {

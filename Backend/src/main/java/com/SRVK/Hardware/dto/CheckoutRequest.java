@@ -1,17 +1,8 @@
+// This file has been deleted.
+// The CheckoutRequest class has been removed. Use CheckoutRequestDTO instead.
 package com.SRVK.Hardware.dto;
-
-import lombok.*;
-
-import java.util.List;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+// This is just a placeholder class to ensure there are no compilation errors
+// if there are any remaining references to this class that haven't been updated yet.
 public class CheckoutRequest {
-    private Long userId;
-    private List<CartKey> selectedProducts;
-    private List<CartKey> selectedRentals;
-    private String paymentMethod;
-    private String paymentDetails; // opaque string for mock payments
+    // Empty class - should not be used
 }
