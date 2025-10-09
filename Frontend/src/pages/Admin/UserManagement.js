@@ -4,7 +4,6 @@ import { FaTrash, FaEdit } from 'react-icons/fa';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './UserManagement.css';
-import mockActivityForUser from './mockUserActivity';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
@@ -102,49 +101,11 @@ const UserManagement = () => {
     }
   };
 
-  // Fetch and show user details (orders, purchases, activity)
-  const [detailsUser, setDetailsUser] = useState(null);
-  const [detailsLoading, setDetailsLoading] = useState(false);
-  const [detailsData, setDetailsData] = useState(null);
-  const [expandedUserId, setExpandedUserId] = useState(null);
+  // details (activity) feature removed
   const [editingUserId, setEditingUserId] = useState(null);
   const [editingForm, setEditingForm] = useState({});
 
-  const openDetails = async (user) => {
-    // toggle
-    if (expandedUserId === user.id) {
-      setExpandedUserId(null);
-      setDetailsData(null);
-      return;
-    }
-    setExpandedUserId(user.id);
-    setDetailsLoading(true);
-    setDetailsData(null);
-    try {
-      const res = await axios.get(`http://localhost:8080/api/users/${user.id}/activity`);
-      setDetailsData(res.data);
-    } catch (err) {
-      try {
-        const orders = await axios.get(`http://localhost:8080/api/orders?userId=${user.id}`);
-        setDetailsData({ orders: orders.data });
-      } catch (e) {
-        try {
-          const mock = mockActivityForUser(user.id);
-          setDetailsData(mock);
-        } catch (mErr) {
-          setDetailsData({ orders: [] });
-        }
-      }
-    } finally {
-      setDetailsLoading(false);
-    }
-  };
 
-  const closeDetails = () => {
-    setExpandedUserId(null);
-    setDetailsData(null);
-    setDetailsLoading(false);
-  };
 
   // Inline edit support
   const startInlineEdit = (user) => {
@@ -197,72 +158,7 @@ const UserManagement = () => {
       <ToastContainer position="top-right" />
       <div className="user-mgmt-header">
         <h2>User Management</h2>
-      {detailsUser && (
-        <div className="modal-bg" onClick={closeDetails}>
-          <div className="modal details-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="details-header">
-              <h3>{detailsUser.firstName} {detailsUser.lastName} — Activity</h3>
-              <button className="close-btn" onClick={closeDetails}>Close</button>
-            </div>
-            {detailsLoading ? <div>Loading details...</div> : (
-              <div className="details-body">
-                <div className="metrics-row">
-                  <div className="metric">
-                    <div className="metric-label">Products Purchased</div>
-                    <div className="metric-value">{(detailsData && detailsData.totalProducts) || (detailsData && detailsData.orders ? detailsData.orders.reduce((acc,o)=>acc + (o.items ? o.items.length : 0),0) : 0)}</div>
-                  </div>
-                  <div className="metric">
-                    <div className="metric-label">Total Spent</div>
-                    <div className="metric-value">Rs. {(detailsData && detailsData.totalAmount) || (detailsData && detailsData.orders ? detailsData.orders.reduce((acc,o)=>acc + (o.total || o.amount || 0),0) : 0)}</div>
-                  </div>
-                  <div className="metric">
-                    <div className="metric-label">Recent Orders</div>
-                    <div className="metric-value">{(detailsData && detailsData.recentOrdersCount) || (detailsData && detailsData.orders ? Math.min(5, detailsData.orders.length) : 0)}</div>
-                  </div>
-                </div>
-
-                <div className="details-list">
-                  <h4>Orders / Purchases</h4>
-                  {(detailsData && detailsData.orders && detailsData.orders.length > 0) ? (
-                    <div className="orders">
-                      {detailsData.orders.map((o) => (
-                        <div className="order-card" key={o.id || o.orderId}>
-                          <div className="order-row">
-                            <div><strong>Order:</strong> {o.id || o.orderId}</div>
-                            <div><strong>Date:</strong> {o.date || o.createdAt || o.orderDate}</div>
-                            <div><strong>Total:</strong> Rs. {o.total || o.amount || 0}</div>
-                          </div>
-                          <div className="order-items">
-                            {(o.items || o.orderItems || []).map((it, idx) => (
-                              <div key={idx} className="order-item">
-                                <div className="oi-name">{it.name || it.productName || it.title}</div>
-                                <div className="oi-qty">Qty: {it.quantity || it.qty || 1}</div>
-                                <div className="oi-price">Rs. {it.price || it.unitPrice || it.amount || 0}</div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="empty">No orders found for this user.</div>
-                  )}
-                </div>
-                {(detailsData && detailsData.activity && detailsData.activity.length > 0) && (
-                  <div className="recent-activity">
-                    <h4>Recent Activity</h4>
-                    <ul>
-                      {detailsData.activity.map((a, i) => (
-                        <li key={i}>{a.timestamp || a.date}: {a.action || a.description}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      {/* details feature removed */}
         <button className="add-btn" onClick={() => openForm()}>+ Add User</button>
       </div>
       <input className="search-input" placeholder="Search users..." value={search} onChange={handleSearch} />
@@ -314,7 +210,7 @@ const UserManagement = () => {
                           <button className="edit-btn" onClick={() => startInlineEdit(u)} title="Edit">
                             <FaEdit />
                           </button>
-                          <button className="details-btn" onClick={() => openDetails(u)}>{expandedUserId===u.id ? 'Hide' : 'Details'}</button>
+                          {/* Details feature removed */}
                           <button className="delete-btn" onClick={() => handleDelete(u.id)} title="Delete">
                             <FaTrash />
                           </button>
@@ -324,69 +220,7 @@ const UserManagement = () => {
                   )}
                 </tr>
 
-                {expandedUserId === u.id && (
-                  <tr className="details-row">
-                    <td colSpan={5}>
-                      {detailsLoading ? <div>Loading details...</div> : (
-                        <div className="inline-details">
-                          <div className="metrics-row">
-                            <div className="metric">
-                              <div className="metric-label">Products Purchased</div>
-                              <div className="metric-value">{(detailsData && detailsData.totalProducts) || (detailsData && detailsData.orders ? detailsData.orders.reduce((acc,o)=>acc + (o.items ? o.items.length : 0),0) : 0)}</div>
-                            </div>
-                            <div className="metric">
-                              <div className="metric-label">Total Spent</div>
-                              <div className="metric-value">Rs. {(detailsData && detailsData.totalAmount) || (detailsData && detailsData.orders ? detailsData.orders.reduce((acc,o)=>acc + (o.total || o.amount || 0),0) : 0)}</div>
-                            </div>
-                            <div className="metric">
-                              <div className="metric-label">Recent Orders</div>
-                              <div className="metric-value">{(detailsData && detailsData.recentOrdersCount) || (detailsData && detailsData.orders ? Math.min(5, detailsData.orders.length) : 0)}</div>
-                            </div>
-                          </div>
-
-                          <div className="details-list">
-                            <h4>Orders / Purchases</h4>
-                            {(detailsData && detailsData.orders && detailsData.orders.length > 0) ? (
-                              <div className="orders">
-                                {detailsData.orders.map((o) => (
-                                  <div className="order-card" key={o.id || o.orderId}>
-                                    <div className="order-row">
-                                      <div><strong>Order:</strong> {o.id || o.orderId}</div>
-                                      <div><strong>Date:</strong> {o.date || o.createdAt || o.orderDate}</div>
-                                      <div><strong>Total:</strong> Rs. {o.total || o.amount || 0}</div>
-                                    </div>
-                                    <div className="order-items">
-                                      {(o.items || o.orderItems || []).map((it, idx) => (
-                                        <div key={idx} className="order-item">
-                                          <div className="oi-name">{it.name || it.productName || it.title}</div>
-                                          <div className="oi-qty">Qty: {it.quantity || it.qty || 1}</div>
-                                          <div className="oi-price">Rs. {it.price || it.unitPrice || it.amount || 0}</div>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            ) : (
-                              <div className="empty">No orders found for this user.</div>
-                            )}
-                          </div>
-
-                          {(detailsData && detailsData.activity && detailsData.activity.length > 0) && (
-                            <div className="recent-activity">
-                              <h4>Recent Activity</h4>
-                              <ul>
-                                {detailsData.activity.map((a, i) => (
-                                  <li key={i}>{a.timestamp || a.date}: {a.action || a.description}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                )}
+                {/* details row removed */}
               </React.Fragment>
             ))}
           </tbody>
