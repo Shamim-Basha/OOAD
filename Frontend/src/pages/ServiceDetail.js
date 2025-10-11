@@ -32,6 +32,33 @@ const ServiceDetail = () => {
 
   const navigate = useNavigate();
 
+  // Check for pending rental after login
+  useEffect(() => {
+    const pendingRental = localStorage.getItem('pendingRental');
+    if (pendingRental) {
+      try {
+        const rentalData = JSON.parse(pendingRental);
+        // Check if this is the same service and user is now logged in
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        if (rentalData.serviceId == id && user.id) {
+          // Pre-fill the form with the stored data
+          setStartDate(rentalData.startDate);
+          setEndDate(rentalData.endDate);
+          setQuantity(rentalData.quantity);
+          
+          // Clear the pending rental
+          localStorage.removeItem('pendingRental');
+          
+          // Show a message
+          alert(`Welcome back! Your rental details for ${rentalData.serviceName} have been restored. You can now proceed to add it to cart.`);
+        }
+      } catch (e) {
+        console.error('Error processing pending rental:', e);
+        localStorage.removeItem('pendingRental');
+      }
+    }
+  }, [id]);
+
   useEffect(() => {
     const fetchTool = async () => {
       setLoading(true);
@@ -178,7 +205,28 @@ const ServiceDetail = () => {
     try {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       const USER = localStorage.getItem('user');
-      const userId = USER? JSON.parse(USER)["id"] : 1;
+      const userId = USER? JSON.parse(USER)["id"] : null;
+      
+      // Check if user is logged in
+      if (!userId) {
+        // Store the current page URL and rental data for after login
+        const rentalData = {
+          serviceId: service.id,
+          serviceName: service.name,
+          startDate,
+          endDate,
+          quantity,
+          returnUrl: window.location.pathname + window.location.search
+        };
+        
+        // Store rental data in localStorage for after login
+        localStorage.setItem('pendingRental', JSON.stringify(rentalData));
+        
+        // Show a friendly message and redirect to login
+        alert('Please log in to add items to cart. You will be redirected back here after login.');
+        navigate('/login');
+        return;
+      }
       
       // Add rental item to cart instead of creating rental directly
       const payload = {
@@ -257,8 +305,34 @@ const ServiceDetail = () => {
         <div className="service-content">
           {/* Service Art Placeholder */}
           <div className="service-art">
-            <div className="art-circle large">
-              <FaTools size={40} />
+            <div className="art-container">
+              <div className="art-circle large">
+                <FaTools size={60} />
+              </div>
+              <div className="art-info">
+                <h3>Professional Equipment</h3>
+                <p>High-quality construction tools and machinery</p>
+              </div>
+            </div>
+            <div className="art-features">
+              <div className="art-feature">
+                <div className="feature-icon">
+                  <FaShieldAlt />
+                </div>
+                <span>Insured Equipment</span>
+              </div>
+              <div className="art-feature">
+                <div className="feature-icon">
+                  <FaTruck />
+                </div>
+                <span>Free Delivery</span>
+              </div>
+              <div className="art-feature">
+                <div className="feature-icon">
+                  <FaPhone />
+                </div>
+                <span>24/7 Support</span>
+              </div>
             </div>
           </div>
 
@@ -292,6 +366,36 @@ const ServiceDetail = () => {
             {/* Rental Form */}
             <div className="rental-form">
               <h3>Rental Details</h3>
+              
+              {/* Login prompt for non-logged-in users */}
+              {!JSON.parse(localStorage.getItem('user') || '{}').id && (
+                <div className="login-prompt">
+                  <div className="login-prompt-content">
+                    <span className="login-icon">🔒</span>
+                    <div className="login-text">
+                      <strong>Login Required</strong>
+                      <p>Please log in to add items to cart and complete your rental</p>
+                    </div>
+                    <button 
+                      className="btn btn-outline login-btn"
+                      onClick={() => {
+                        const rentalData = {
+                          serviceId: service.id,
+                          serviceName: service.name,
+                          startDate,
+                          endDate,
+                          quantity,
+                          returnUrl: window.location.pathname + window.location.search
+                        };
+                        localStorage.setItem('pendingRental', JSON.stringify(rentalData));
+                        navigate('/login');
+                      }}
+                    >
+                      Login Now
+                    </button>
+                  </div>
+                </div>
+              )}
               
               <div className="form-row">
                 <div className="form-group">

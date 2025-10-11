@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaSearch, FaCalendar, FaClock, FaTruck, FaTools, FaStar } from 'react-icons/fa';
 import axios from 'axios';
+import { convertByteToImage } from '../utils/imageHelpers';
 import './Services.css';
 
 const Services = () => {
@@ -39,7 +40,8 @@ const Services = () => {
           description: t.description || '',
           features: [],
           minRentalDays: 1,
-          maxRentalDays: 30
+          maxRentalDays: 30,
+          imageSrc: convertByteToImage(t.image, 'https://via.placeholder.com/300?text=No+Image')
         }));
         setServices(mapped);
         const uniqueCats = Array.from(new Set(mapped.map(m => m.category))).filter(Boolean);
@@ -197,8 +199,8 @@ const Services = () => {
             {filteredServices.map(service => (
               <div key={service.id} className="service-card">
                 <div className="service-art">
-                  <div className="art-circle">
-                    <FaTools size={28} />
+                  <div className="service-image">
+                    <img src={service.imageSrc} alt={service.name} />
                   </div>
                   {!service.available && (
                     <div className="not-available">Currently Unavailable</div>

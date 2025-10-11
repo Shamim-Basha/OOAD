@@ -188,6 +188,10 @@ public class CheckoutService {
         
         // Create RentalOrderDTO objects for the separate rental order items
         for (RentalOrder savedRental : rentalOrders) {
+            // Get tool information for the DTO
+            Tool tool = toolRepository.findById(savedRental.getToolId())
+                .orElseThrow(() -> new RuntimeException("Tool not found: " + savedRental.getToolId()));
+            
             rentalItems.add(RentalOrderDTO.builder()
                 .rentalOrderId(savedRental.getId())
                 .toolId(savedRental.getToolId())
@@ -196,6 +200,7 @@ public class CheckoutService {
                 .rentalEnd(savedRental.getEndDate())
                 .totalCost(savedRental.getTotalCost())
                 .status("ACTIVE")
+                .toolName(tool.getName())
                 .build());
         }
         

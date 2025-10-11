@@ -103,7 +103,7 @@ const ToolManagement = () => {
           <tbody>
             {filtered.map(t => (
               <tr key={t.id}>
-                <td>{t.imageUrl ? <img src={t.imageUrl} alt={t.name} className="tool-img" /> : '-'}</td>
+                <td>{t.image ? <img src={`data:image/png;base64,${t.image}`} alt={t.name} className="tool-img" /> : '-'}</td>
                 <td>{t.name}</td>
                 <td>{t.type}</td>
                 <td>{t.brand}</td>

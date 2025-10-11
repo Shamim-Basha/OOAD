@@ -20,4 +20,5 @@ public class RentalOrderDTO {
     private LocalDate rentalEnd;
     private BigDecimal totalCost;
     private String status;
+    private String toolName; // Tool name for display
 }

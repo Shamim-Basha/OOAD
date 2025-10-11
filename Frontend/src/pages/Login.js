@@ -50,8 +50,22 @@ const Login = () => {
 
         localStorage.setItem('user', JSON.stringify(data));
 
+        // Check if there's a pending rental to redirect back to
+        const pendingRental = localStorage.getItem('pendingRental');
+        let redirectPath = '/';
+        
+        if (pendingRental) {
+          try {
+            const rentalData = JSON.parse(pendingRental);
+            redirectPath = rentalData.returnUrl || `/service/${rentalData.serviceId}`;
+          } catch (e) {
+            console.error('Error parsing pending rental:', e);
+            localStorage.removeItem('pendingRental');
+          }
+        }
+
         setTimeout(() => {
-          navigate('/');
+          navigate(redirectPath);
           window.location.reload();
         }, 1000);
       } else {
