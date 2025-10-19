@@ -47,10 +47,25 @@
 
 /* Cart Content */
 .cart-content {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 40px;
   margin-bottom: 60px;
+}
+
+/* Cart Items Container - for side by side layout */
+.cart-items-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  margin-bottom: 20px;
+}
+
+/* Mobile responsive - stack vertically on smaller screens */
+@media (max-width: 1024px) {
+  .cart-items-container {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Cart Items */
@@ -59,17 +74,18 @@
   border-radius: 12px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  border: 2px solid #e9ecef;
 }
 
 .cart-items-header {
-  padding: 20px;
+  padding: 24px 20px;
   border-bottom: 1px solid #e9ecef;
   background: #f8f9fa;
 }
 
 .cart-items-header h2 {
-  font-size: 20px;
-  font-weight: 600;
+  font-size: 22px;
+  font-weight: 700;
   color: #333;
   margin: 0;
 }
@@ -82,6 +98,33 @@
   padding: 20px;
   border-bottom: 1px solid #e9ecef;
   transition: background-color 0.3s ease;
+}
+
+/* Special layout for rental items */
+.rental-cart-item {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+}
+
+.rental-item-main {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.rental-left-section {
+  display: flex;
+  gap: 12px;
+  flex: 1;
+  align-items: flex-start;
+}
+
+.rental-right-section {
+  display: flex;
+  gap: 20px;
+  align-items: center;
 }
 
 .cart-item:hover {
@@ -244,15 +287,15 @@
   color: white;
 }
 
-/* Cart Summary */
+/* Cart Summary - Full width below cart items */
 .cart-summary {
   background: white;
   border-radius: 12px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   padding: 30px;
-  height: fit-content;
-  position: sticky;
-  top: 100px;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
 }
 
 .cart-summary h2 {
@@ -477,4 +520,65 @@
   .recommended-grid {
     grid-template-columns: 1fr;
   }
-} 
+}
+
+/* Enhanced Rental Cart Styling */
+.rental-dates-container {
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+  gap: 8px;
+  min-width: 200px;
+}
+
+.rental-dates {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rental-dates > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rental-dates label {
+  font-size: 11px;
+  font-weight: 500;
+  color: #6c757d;
+}
+
+.rental-dates input[type="date"] {
+  padding: 7px 10px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 12px;
+  background: white;
+  color: #495057;
+  font-family: inherit;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  width: 100%;
+}
+
+.rental-dates input[type="date"]:hover {
+  border-color: #adb5bd;
+}
+
+.rental-dates input[type="date"]:focus {
+  outline: none;
+  border-color: #0066cc;
+  box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
+}
+
+/* Ensure both carts have equal minimum height and same styling */
+.cart-items-container .cart-items {
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+}
+
