@@ -1,19 +1,20 @@
 package com.SRVK.Hardware.controller;
 
-import com.SRVK.Hardware.dto.OrderItemDTO;
 import com.SRVK.Hardware.dto.OrderResponseDTO;
-import com.SRVK.Hardware.dto.RentalOrderDTO;
 import com.SRVK.Hardware.entity.Order;
 import com.SRVK.Hardware.entity.OrderItem;
 import com.SRVK.Hardware.entity.RentalOrder;
+import com.SRVK.Hardware.entity.Tool;
 import com.SRVK.Hardware.entity.User;
 import com.SRVK.Hardware.repository.OrderRepository;
 import com.SRVK.Hardware.repository.RentalOrderRepository;
+import com.SRVK.Hardware.repository.ToolRepository;
 import com.SRVK.Hardware.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -26,6 +27,7 @@ public class OrderController {
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
     private final RentalOrderRepository rentalOrderRepository;
+    private final ToolRepository toolRepository;
 
     @GetMapping("/{userId}")
     public ResponseEntity<?> getOrders(@PathVariable Long userId) {
@@ -38,46 +40,50 @@ public class OrderController {
         List<OrderResponseDTO> dtos = new ArrayList<>();
         
         for (Order order : orders) {
-            List<OrderItemDTO> productItems = new ArrayList<>();
-            List<RentalOrderDTO> rentalItems = new ArrayList<>();
+            List<OrderResponseDTO.Item> items = new ArrayList<>();
             
-            // OrderItem now only handles products, not rentals
+            // Add product items from OrderItem
             for (OrderItem oi : order.getItems()) {
-                // Create product item DTO
-                OrderItemDTO productItem = OrderItemDTO.builder()
+                items.add(OrderResponseDTO.Item.builder()
+                    .type("PRODUCT")
                     .productId(oi.getProduct().getId())
+                    .rentalId(null)
+                    .name(oi.getProduct().getName())
                     .quantity(oi.getQuantity())
                     .unitPrice(oi.getUnitPrice())
                     .subtotal(oi.getSubtotal())
-                    .build();
-                
-                productItems.add(productItem);
-                
-                // Note: Rental items are now handled separately through RentalOrderRepository
-                // and are not part of the OrderItem entity
+                    .rentalStart(null)
+                    .rentalEnd(null)
+                    .build());
             }
             
             // Get rental orders for this user from the separate rental system
             List<RentalOrder> userRentals = rentalOrderRepository.findByUserId(userId);
             
-            // Convert rental orders to DTOs
+            // Add rental items
             for (RentalOrder rental : userRentals) {
-                rentalItems.add(RentalOrderDTO.builder()
-                    .rentalOrderId(rental.getId())
-                    .toolId(rental.getToolId())
+                Tool tool = toolRepository.findById(rental.getToolId()).orElse(null);
+                items.add(OrderResponseDTO.Item.builder()
+                    .type("RENTAL")
+                    .productId(null)
+                    .rentalId(rental.getToolId())
+                    .name(tool != null ? tool.getName() : "Unknown Tool")
                     .quantity(rental.getQuantity())
-                    .rentalStart(rental.getStartDate())
-                    .rentalEnd(rental.getEndDate())
-                    .totalCost(rental.getTotalCost())
-                    .status(rental.getStatus().toString())
+                    .unitPrice(tool != null ? tool.getDailyRate() : BigDecimal.ZERO)
+                    .subtotal(rental.getTotalCost())
+                    .rentalStart(rental.getStartDate().atStartOfDay())
+                    .rentalEnd(rental.getEndDate().atStartOfDay())
                     .build());
             }
             
             OrderResponseDTO orderDto = OrderResponseDTO.builder()
                 .orderId(order.getId())
-                .totalAmount(order.getTotalAmount())
-                .orderItems(productItems)
-                .rentalOrders(rentalItems)
+                .total(order.getTotalAmount())
+                .items(items)
+                .paymentStatus(order.getPaymentStatus())
+                .transactionId(order.getTransactionId())
+                .paymentMethod(order.getPaymentMethod())
+                .orderDate(order.getCreatedAt())
                 .build();
                 
             dtos.add(orderDto);
