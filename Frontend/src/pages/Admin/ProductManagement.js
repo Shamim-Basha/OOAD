@@ -6,7 +6,7 @@ const defaultForm = {
   name: '',
   category: '',
   price: '',
-  stock: '',
+  quantity: '',
   imageUrl: '',
   description: ''
 };
@@ -97,7 +97,7 @@ const ProductManagement = () => {
         <table className="product-table">
           <thead>
             <tr>
-              <th>Image</th><th>Name</th><th>Category</th><th>Price</th><th>Stock</th><th>Actions</th>
+              <th>Image</th><th>Name</th><th>Category</th><th>Price</th><th>Quantity</th><th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -107,7 +107,7 @@ const ProductManagement = () => {
                 <td>{p.name}</td>
                 <td>{p.category}</td>
                 <td>{p.price}</td>
-                <td>{p.stock}</td>
+                <td>{p.quantity}</td>
                 <td>
                   <button className="edit-btn" onClick={() => openForm(p)}>Edit</button>
                   <button className="delete-btn" onClick={() => handleDelete(p.id)}>Delete</button>
@@ -125,7 +125,7 @@ const ProductManagement = () => {
               <input name="name" placeholder="Name" value={form.name} onChange={handleFormChange} required />
               <input name="category" placeholder="Category" value={form.category} onChange={handleFormChange} />
               <input name="price" placeholder="Price" value={form.price} onChange={handleFormChange} type="number" min="0" step="0.01" required />
-              <input name="stock" placeholder="Stock" value={form.stock} onChange={handleFormChange} type="number" min="0" required />
+              <input name="quantity" placeholder="Quantity" value={form.quantity} onChange={handleFormChange} type="number" min="0" required />
               <input name="imageUrl" placeholder="Image URL" value={form.imageUrl} onChange={handleFormChange} />
               <textarea name="description" placeholder="Description" value={form.description} onChange={handleFormChange} />
               <div className="form-actions">

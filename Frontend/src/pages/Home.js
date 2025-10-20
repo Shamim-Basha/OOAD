@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { FaTools, FaTruck, FaShieldAlt, FaStar, FaArrowRight } from 'react-icons/fa';
+import { Link, useNavigate } from 'react-router-dom';
+import { FaTools, FaTruck, FaShieldAlt, FaStar, FaArrowRight, FaPhoneAlt } from 'react-icons/fa';
 import axios from 'axios';
 import './Home.css';
 
 const Home = () => {
   const [loading, setLoading] = useState(false);
+
+  const navigate = useNavigate();
 
   const features = [
     { icon: <FaTruck />, title: "Free Delivery", description: "Free delivery across Colombo and surrounding areas" },

@@ -27,7 +27,7 @@ public class UserService {
                 .address(dto.getAddress())
                 .city(dto.getCity())
                 .postalCode(dto.getPostalCode())
-                .role(UserRole.CUSTOMER)
+                .role(dto.getRole())
                 .build();
     }
 
@@ -42,6 +42,7 @@ public class UserService {
                 .address(user.getAddress())
                 .city(user.getCity())
                 .postalCode(user.getPostalCode())
+                .role(user.getRole())
                 .build();
     }
 
@@ -103,6 +104,7 @@ public class UserService {
             if (dto.getAddress() != null) user.setAddress(dto.getAddress());
             if (dto.getCity() != null) user.setCity(dto.getCity());
             if (dto.getPostalCode() != null) user.setPostalCode(dto.getPostalCode());
+            if (dto.getRole() != null) user.setRole(dto.getRole());
             if (dto.getPassword() != null) user.setPassword(dto.getPassword());
 
             userRepository.save(user);
