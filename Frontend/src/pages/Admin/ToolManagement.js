@@ -1,5 +1,6 @@
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
+import { convertByteToImage } from '../../utils/imageHelpers';
 import './ToolManagement.css';
 
 const defaultForm = {
@@ -8,7 +9,8 @@ const defaultForm = {
   category: '',
   available: true,
   stockQuantity: 1,
-  description: ''
+  description: '',
+  image: ''
 };
 
 const ToolManagement = () => {
@@ -19,6 +21,7 @@ const ToolManagement = () => {
   const [editTool, setEditTool] = useState(null);
   const [form, setForm] = useState(defaultForm);
   const [message, setMessage] = useState('');
+  const [imagePreview, setImagePreview] = useState('');
 
   useEffect(() => {
     fetchTools();
@@ -40,6 +43,8 @@ const ToolManagement = () => {
   const openForm = (tool = null) => {
     setEditTool(tool);
     setForm(tool ? { ...tool } : defaultForm);
+    const preview = tool && tool.image ? convertByteToImage(tool.image) : '';
+    setImagePreview(preview);
     setShowForm(true);
     setMessage('');
   };
@@ -52,6 +57,22 @@ const ToolManagement = () => {
 
   const handleFormChange = e => {
     setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleImageChange = e => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result; // data:image/...;base64,XXXX
+      setImagePreview(typeof dataUrl === 'string' ? dataUrl : '');
+      if (typeof dataUrl === 'string') {
+        const commaIndex = dataUrl.indexOf(',');
+        const base64 = commaIndex >= 0 ? dataUrl.substring(commaIndex + 1) : dataUrl;
+        setForm(prev => ({ ...prev, image: base64 }));
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleSubmit = async e => {
@@ -79,7 +100,10 @@ const ToolManagement = () => {
     try {
       await axios.delete(`http://localhost:8080/api/tools/${id}`);
       fetchTools();
-    } catch {}
+    } catch (err) {
+      const msg = err?.response?.data || 'Error deleting tool.';
+      setMessage(typeof msg === 'string' ? msg : 'Error deleting tool.');
+    }
   };
 
   const filtered = tools.filter(t =>
@@ -97,12 +121,19 @@ const ToolManagement = () => {
         <table className="tool-table">
           <thead>
             <tr>
-              <th>Name</th><th>Category</th><th>Daily Rate</th><th>Stock</th><th>Available</th><th>Actions</th>
+              <th>Image</th><th>Name</th><th>Category</th><th>Daily Rate</th><th>Stock</th><th>Available</th><th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {filtered.map(t => (
               <tr key={t.id}>
+                <td>
+                  {t.image ? (
+                    <img src={convertByteToImage(t.image)} alt={t.name} style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 6 }} />
+                  ) : (
+                    <div style={{ width: 48, height: 48, background: '#f1f3f5', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888', fontSize: 12 }}>No Image</div>
+                  )}
+                </td>
                 <td>{t.name}</td>
                 <td>{t.category}</td>
                 <td>Rs. {t.dailyRate?.toLocaleString() || '0'}</td>
@@ -137,6 +168,15 @@ const ToolManagement = () => {
               </select>
               <input name="dailyRate" placeholder="Daily Rate (Rs.)" value={form.dailyRate} onChange={handleFormChange} type="number" min="0" step="0.01" required />
               <input name="stockQuantity" placeholder="Stock Quantity" value={form.stockQuantity} onChange={handleFormChange} type="number" min="0" required />
+              <div>
+                <label style={{ display: 'block', marginBottom: 6 }}>Image (optional)</label>
+                <input type="file" accept="image/*" onChange={handleImageChange} />
+                {imagePreview && (
+                  <div style={{ marginTop: 8 }}>
+                    <img src={imagePreview} alt="Preview" style={{ width: 120, height: 120, objectFit: 'cover', borderRadius: 8, border: '1px solid #e9ecef' }} />
+                  </div>
+                )}
+              </div>
               <div className="checkbox-group">
                 <label>
                   <input 

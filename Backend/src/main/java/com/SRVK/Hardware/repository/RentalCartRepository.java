@@ -25,6 +25,11 @@ public interface RentalCartRepository extends JpaRepository<RentalCart, RentalCa
      * @param toolId the tool ID
      */
     void deleteByIdUserIdAndIdToolId(Long userId, Long toolId);
+
+    /**
+     * Delete all rental cart items referencing a specific tool
+     */
+    void deleteByIdToolId(Long toolId);
 }
 
 
