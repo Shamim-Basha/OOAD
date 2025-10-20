@@ -5,9 +5,10 @@ import './ProductManagement.css';
 const defaultForm = {
   name: '',
   category: '',
+  sub_category: '',
   price: '',
   quantity: '',
-  imageUrl: '',
+  image: null, // file instead of URL
   description: ''
 };
 
@@ -29,7 +30,8 @@ const ProductManagement = () => {
     try {
       const res = await axios.get('http://localhost:8080/api/products');
       setProducts(Array.isArray(res.data) ? res.data : (res.data.data || []));
-    } catch {
+    } catch (err) {
+      console.error('Error fetching products:', err);
       setProducts([]);
     }
     setLoading(false);
@@ -39,7 +41,11 @@ const ProductManagement = () => {
 
   const openForm = (product = null) => {
     setEditProduct(product);
-    setForm(product ? { ...product } : defaultForm);
+    setForm(
+      product
+        ? { ...product, image: null } // image not reloaded into form
+        : defaultForm
+    );
     setShowForm(true);
     setMessage('');
   };
@@ -51,25 +57,46 @@ const ProductManagement = () => {
   };
 
   const handleFormChange = e => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value, files } = e.target;
+    if (name === 'image') {
+      setForm({ ...form, image: files[0] });
+    } else {
+      setForm({ ...form, [name]: value });
+    }
   };
 
   const handleSubmit = async e => {
     e.preventDefault();
     setMessage('');
+
+    const formData = new FormData();
+    formData.append('name', form.name);
+    formData.append('category', form.category);
+    formData.append('sub_category', form.sub_category);
+    formData.append('price', form.price);
+    formData.append('quantity', form.quantity);
+    formData.append('description', form.description);
+    if (form.image) formData.append('image', form.image);
+
     try {
       const method = editProduct ? 'put' : 'post';
-      const url = editProduct ? `http://localhost:8080/api/products/${editProduct.id}` : 'http://localhost:8080/api/products';
-      await axios({
+      const url = editProduct
+        ? `http://localhost:8080/api/products/${editProduct.id}`
+        : 'http://localhost:8080/api/products';
+
+      const res = await axios({
         method,
         url,
-        data: form,
-        headers: { 'Content-Type': 'application/json' },
+        data: formData,
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
+
+      console.log('Server response:', res.data);
       setMessage(editProduct ? 'Product updated.' : 'Product added.');
       fetchProducts();
       closeForm();
-    } catch {
+    } catch (err) {
+      console.error('Error saving product:', err);
       setMessage('Error saving product.');
     }
   };
@@ -79,11 +106,15 @@ const ProductManagement = () => {
     try {
       await axios.delete(`http://localhost:8080/api/products/${id}`);
       fetchProducts();
-    } catch {}
+    } catch (err) {
+      console.error('Error deleting product:', err);
+    }
   };
 
   const filtered = products.filter(p =>
-    (p.name + ' ' + p.category + ' ' + p.description).toLowerCase().includes(search.toLowerCase())
+    (p.name + ' ' + p.category + ' ' + p.sub_category + ' ' + p.description)
+      .toLowerCase()
+      .includes(search.toLowerCase())
   );
 
   return (
@@ -92,20 +123,46 @@ const ProductManagement = () => {
         <h2>Product Management</h2>
         <button className="add-btn" onClick={() => openForm()}>+ Add Product</button>
       </div>
-      <input className="search-input" placeholder="Search products..." value={search} onChange={handleSearch} />
-      {loading ? <div>Loading...</div> : (
+
+      <input
+        className="search-input"
+        placeholder="Search products..."
+        value={search}
+        onChange={handleSearch}
+      />
+
+      {loading ? (
+        <div>Loading...</div>
+      ) : (
         <table className="product-table">
           <thead>
             <tr>
-              <th>Image</th><th>Name</th><th>Category</th><th>Price</th><th>Quantity</th><th>Actions</th>
+              <th>Image</th>
+              <th>Name</th>
+              <th>Category</th>
+              <th>Sub Category</th>
+              <th>Price</th>
+              <th>Quantity</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {filtered.map(p => (
               <tr key={p.id}>
-                <td>{p.imageUrl ? <img src={p.imageUrl} alt={p.name} className="product-img" /> : '-'}</td>
+                <td>
+                  {p.image ? (
+                    <img
+                      src={`data:image/jpeg;base64,${p.image}`}
+                      alt={p.name}
+                      className="product-img"
+                    />
+                  ) : (
+                    '-'
+                  )}
+                </td>
                 <td>{p.name}</td>
                 <td>{p.category}</td>
+                <td>{p.sub_category}</td>
                 <td>{p.price}</td>
                 <td>{p.quantity}</td>
                 <td>
@@ -117,17 +174,64 @@ const ProductManagement = () => {
           </tbody>
         </table>
       )}
+
       {showForm && (
         <div className="modal-bg">
           <div className="modal">
             <h3>{editProduct ? 'Edit Product' : 'Add Product'}</h3>
             <form onSubmit={handleSubmit} className="product-form">
-              <input name="name" placeholder="Name" value={form.name} onChange={handleFormChange} required />
-              <input name="category" placeholder="Category" value={form.category} onChange={handleFormChange} />
-              <input name="price" placeholder="Price" value={form.price} onChange={handleFormChange} type="number" min="0" step="0.01" required />
-              <input name="quantity" placeholder="Quantity" value={form.quantity} onChange={handleFormChange} type="number" min="0" required />
-              <input name="imageUrl" placeholder="Image URL" value={form.imageUrl} onChange={handleFormChange} />
-              <textarea name="description" placeholder="Description" value={form.description} onChange={handleFormChange} />
+              <input
+                name="name"
+                placeholder="Name"
+                value={form.name}
+                onChange={handleFormChange}
+                required
+              />
+              <input
+                name="category"
+                placeholder="Category"
+                value={form.category}
+                onChange={handleFormChange}
+                required
+              />
+              <input
+                name="sub_category"
+                placeholder="Sub Category"
+                value={form.sub_category}
+                onChange={handleFormChange}
+                required
+              />
+              <input
+                name="price"
+                placeholder="Price"
+                value={form.price}
+                onChange={handleFormChange}
+                type="number"
+                min="0"
+                required
+              />
+              <input
+                name="quantity"
+                placeholder="Quantity"
+                value={form.quantity}
+                onChange={handleFormChange}
+                type="number"
+                min="0"
+                required
+              />
+              <input
+                name="image"
+                type="file"
+                accept="image/*"
+                onChange={handleFormChange}
+              />
+              <textarea
+                name="description"
+                placeholder="Description"
+                value={form.description}
+                onChange={handleFormChange}
+                maxLength="100"
+              />
               <div className="form-actions">
                 <button type="submit" className="save-btn">Save</button>
                 <button type="button" className="cancel-btn" onClick={closeForm}>Cancel</button>

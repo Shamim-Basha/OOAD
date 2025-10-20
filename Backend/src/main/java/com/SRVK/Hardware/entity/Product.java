@@ -33,7 +33,7 @@ public class Product {
     private String description;
 
     @Column(name = "price", nullable = false)
-    private int price;
+    private double price;
 
     @Lob
     private byte[] image;
