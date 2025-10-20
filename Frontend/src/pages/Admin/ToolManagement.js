@@ -4,10 +4,10 @@ import './ToolManagement.css';
 
 const defaultForm = {
   name: '',
-  type: '',
-  brand: '',
-  stock: '',
-  imageUrl: '',
+  dailyRate: '',
+  category: '',
+  available: true,
+  stockQuantity: 1,
   description: ''
 };
 
@@ -83,7 +83,7 @@ const ToolManagement = () => {
   };
 
   const filtered = tools.filter(t =>
-    (t.name + ' ' + t.type + ' ' + t.brand + ' ' + t.description).toLowerCase().includes(search.toLowerCase())
+    (t.name + ' ' + t.category + ' ' + t.description).toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -97,17 +97,21 @@ const ToolManagement = () => {
         <table className="tool-table">
           <thead>
             <tr>
-              <th>Image</th><th>Name</th><th>Type</th><th>Brand</th><th>Stock</th><th>Actions</th>
+              <th>Name</th><th>Category</th><th>Daily Rate</th><th>Stock</th><th>Available</th><th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {filtered.map(t => (
               <tr key={t.id}>
-                <td>{t.image ? <img src={`data:image/png;base64,${t.image}`} alt={t.name} className="tool-img" /> : '-'}</td>
                 <td>{t.name}</td>
-                <td>{t.type}</td>
-                <td>{t.brand}</td>
-                <td>{t.stock}</td>
+                <td>{t.category}</td>
+                <td>Rs. {t.dailyRate?.toLocaleString() || '0'}</td>
+                <td>{t.stockQuantity || 0}</td>
+                <td>
+                  <span className={`status-badge ${t.available ? 'available' : 'unavailable'}`}>
+                    {t.available ? 'Available' : 'Unavailable'}
+                  </span>
+                </td>
                 <td>
                   <button className="edit-btn" onClick={() => openForm(t)}>Edit</button>
                   <button className="delete-btn" onClick={() => handleDelete(t.id)}>Delete</button>
@@ -122,12 +126,29 @@ const ToolManagement = () => {
           <div className="modal">
             <h3>{editTool ? 'Edit Tool' : 'Add Tool'}</h3>
             <form onSubmit={handleSubmit} className="tool-form">
-              <input name="name" placeholder="Name" value={form.name} onChange={handleFormChange} required />
-              <input name="type" placeholder="Type" value={form.type} onChange={handleFormChange} />
-              <input name="brand" placeholder="Brand" value={form.brand} onChange={handleFormChange} />
-              <input name="stock" placeholder="Stock" value={form.stock} onChange={handleFormChange} type="number" min="0" required />
-              <input name="imageUrl" placeholder="Image URL" value={form.imageUrl} onChange={handleFormChange} />
-              <textarea name="description" placeholder="Description" value={form.description} onChange={handleFormChange} />
+              <input name="name" placeholder="Tool Name" value={form.name} onChange={handleFormChange} required />
+              <select name="category" value={form.category} onChange={handleFormChange} required>
+                <option value="">Select Category</option>
+                <option value="Heavy Machinery">Heavy Machinery</option>
+                <option value="Construction Equipment">Construction Equipment</option>
+                <option value="Power Tools">Power Tools</option>
+                <option value="Hand Tools">Hand Tools</option>
+                <option value="Safety Equipment">Safety Equipment</option>
+              </select>
+              <input name="dailyRate" placeholder="Daily Rate (Rs.)" value={form.dailyRate} onChange={handleFormChange} type="number" min="0" step="0.01" required />
+              <input name="stockQuantity" placeholder="Stock Quantity" value={form.stockQuantity} onChange={handleFormChange} type="number" min="0" required />
+              <div className="checkbox-group">
+                <label>
+                  <input 
+                    name="available" 
+                    type="checkbox" 
+                    checked={form.available} 
+                    onChange={(e) => setForm({...form, available: e.target.checked})} 
+                  />
+                  Available for Rent
+                </label>
+              </div>
+              <textarea name="description" placeholder="Description" value={form.description} onChange={handleFormChange} rows="3" />
               <div className="form-actions">
                 <button type="submit" className="save-btn">Save</button>
                 <button type="button" className="cancel-btn" onClick={closeForm}>Cancel</button>

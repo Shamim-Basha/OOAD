@@ -27,7 +27,41 @@ public class ToolController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
+
+    @PostMapping
+    public ResponseEntity<Tool> create(@RequestBody Tool tool) {
+        try {
+            Tool savedTool = toolRepository.save(tool);
+            return ResponseEntity.ok(savedTool);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Tool> update(@PathVariable Long id, @RequestBody Tool tool) {
+        try {
+            if (!toolRepository.existsById(id)) {
+                return ResponseEntity.notFound().build();
+            }
+            tool.setId(id);
+            Tool updatedTool = toolRepository.save(tool);
+            return ResponseEntity.ok(updatedTool);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        try {
+            if (!toolRepository.existsById(id)) {
+                return ResponseEntity.notFound().build();
+            }
+            toolRepository.deleteById(id);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
 }
-
-
-// 
