@@ -49,11 +49,19 @@ const Login = () => {
         });
 
         localStorage.setItem('user', JSON.stringify(data));
-
+        if (data.role === 'admin') {
+        localStorage.setItem('isAdmin', 'true');
         setTimeout(() => {
-          navigate('/');
+          navigate('/admin');
           window.location.reload();
         }, 1000);
+        } else {
+          localStorage.removeItem('isAdmin');
+          setTimeout(() => {
+            navigate('/');
+            window.location.reload();
+          }, 1000);
+        }
       } else {
         toast.update(toastId, {
           render: data.message || 'Invalid username or password',

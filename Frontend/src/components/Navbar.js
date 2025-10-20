@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { FaShoppingCart, FaSearch, FaBars, FaTimes, FaTools, FaUser, FaUserCircle, FaSignOutAlt } from 'react-icons/fa';
 import { ToastContainer ,toast } from 'react-toastify';
+import { isAdmin } from '../utils/Auth';
 import 'react-toastify/dist/ReactToastify.css';
 import './Navbar.css';
 
@@ -38,6 +39,7 @@ const Navbar = () => {
     const toastId = toast.loading('🔐 Signing out...');
 
     localStorage.removeItem('user');
+    localStorage.removeItem('isAdmin');
     setIsLoggedIn(false);
     setUser(null);
     setShowDropdown(false);
@@ -97,6 +99,14 @@ const Navbar = () => {
           >
             Contact
           </Link>
+          {isAdmin() && <Link 
+            to="/admin" 
+            className={`btn btn-primary navbar-link ${isActive('/admin') ? 'active' : ''}`}
+            style={{color: 'white', backgroundColor: '#dabd1dff'}}
+            onClick={() => setIsMenuOpen(false)}
+          >
+            Dashboard
+          </Link>}
         </div>
 
         <div className="navbar-actions">

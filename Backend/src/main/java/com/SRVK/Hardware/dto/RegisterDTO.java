@@ -1,5 +1,6 @@
 package com.SRVK.Hardware.dto;
 
+import com.SRVK.Hardware.entity.User;
 import lombok.Data;
 
 @Data
@@ -13,4 +14,5 @@ public class RegisterDTO {
     private String address;
     private String city;
     private String postalCode;
+    private User.UserRole role;
 }
