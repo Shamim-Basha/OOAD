@@ -17,6 +17,8 @@ public class UserService {
     private UserRepository userRepository;
 
     public User toUser(RegisterDTO dto) {
+        UserRole role = UserRole.CUSTOMER;
+        if (dto.getRole() != null) {role = dto.getRole();}
         return User.builder()
                 .username(dto.getUsername())
                 .email(dto.getEmail())
@@ -27,13 +29,11 @@ public class UserService {
                 .address(dto.getAddress())
                 .city(dto.getCity())
                 .postalCode(dto.getPostalCode())
-                .role(dto.getRole())
+                .role(role)
                 .build();
     }
 
     public ResponseDTO toResponseDTO(User user) {
-        UserRole role = UserRole.CUSTOMER;
-        if (user.getRole() != null) {role = user.getRole();}
         return ResponseDTO.builder()
                 .id(user.getId())
                 .username(user.getUsername())
