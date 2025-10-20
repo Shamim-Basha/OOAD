@@ -43,7 +43,7 @@ const ProductManagement = () => {
     setEditProduct(product);
     setForm(
       product
-        ? { ...product, image: null } 
+        ? { ...product, image: null } // Reset image for file input
         : defaultForm
     );
     setShowForm(true);
@@ -72,7 +72,7 @@ const ProductManagement = () => {
     const formData = new FormData();
     formData.append('name', form.name);
     formData.append('category', form.category);
-    formData.append('subCategory', form.subCategory); 
+    formData.append('subCategory', form.subCategory); // Backend expects camelCase
     formData.append('price', form.price);
     formData.append('quantity', form.quantity);
     formData.append('description', form.description);
@@ -112,7 +112,7 @@ const ProductManagement = () => {
   };
 
   const filtered = products.filter(p =>
-    (p.name + ' ' + p.category + ' ' + p.subCategory + ' ' + p.description) 
+    (p.name + ' ' + p.category + ' ' + p.subCategory + ' ' + p.description)
       .toLowerCase()
       .includes(search.toLowerCase())
   );
@@ -162,7 +162,7 @@ const ProductManagement = () => {
                 </td>
                 <td>{p.name}</td>
                 <td>{p.category}</td>
-                <td>{p.subCategory}</td> {/*  */}
+                <td>{p.subCategory}</td>
                 <td>{p.price}</td>
                 <td>{p.quantity}</td>
                 <td>
@@ -195,9 +195,9 @@ const ProductManagement = () => {
                 required
               />
               <input
-                name="subCategory" 
+                name="subCategory"
                 placeholder="Sub Category"
-                value={form.subCategory} 
+                value={form.subCategory}
                 onChange={handleFormChange}
                 required
               />

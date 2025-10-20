@@ -21,11 +21,13 @@ public class ProductController {
         this.productService = productService;
     }
 
+    // ✅ GET all products
     @GetMapping
     public ResponseEntity<List<Product>> getAllProducts() {
         return ResponseEntity.ok(productService.getAllProducts());
     }
 
+    // ✅ GET single product
     @GetMapping("/{id}")
     public ResponseEntity<Product> getProduct(@PathVariable Long id) {
         try {
@@ -40,11 +42,12 @@ public class ProductController {
         }
     }
 
+    // ✅ POST: Add new product (multipart/form-data)
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> addNewProduct(
             @RequestParam("name") String name,
             @RequestParam("category") String category,
-            @RequestParam("sub_category") String subCategory,
+            @RequestParam("subCategory") String subCategory, // <-- changed to camelCase
             @RequestParam("price") double price,
             @RequestParam("quantity") int quantity,
             @RequestParam("description") String description,
@@ -73,12 +76,13 @@ public class ProductController {
         }
     }
 
+    // ✅ PUT: Update existing product (multipart/form-data)
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updateProduct(
             @PathVariable Long id,
             @RequestParam("name") String name,
             @RequestParam("category") String category,
-            @RequestParam("sub_category") String subCategory,
+            @RequestParam("subCategory") String subCategory, // <-- changed to camelCase
             @RequestParam("price") double price,
             @RequestParam("quantity") int quantity,
             @RequestParam("description") String description,
