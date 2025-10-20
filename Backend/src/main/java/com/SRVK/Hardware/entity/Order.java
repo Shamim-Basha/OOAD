@@ -28,13 +28,21 @@ public class Order {
     public static final String STATUS_FAILED = "FAILED";
     
     /**
+     * Delivery status constants
+     */
+    public static final String DELIVERY_PENDING = "PENDING";
+    public static final String DELIVERY_PROCESSING = "PROCESSING";
+    public static final String DELIVERY_SHIPPED = "SHIPPED";
+    public static final String DELIVERY_DELIVERED = "DELIVERED";
+    public static final String DELIVERY_CANCELLED = "CANCELLED";
+    
+    /**
      * Payment method constants
      */
     public static final String PAYMENT_METHOD_CARD = "CARD";
-    public static final String PAYMENT_METHOD_UPI = "UPI";
     public static final String PAYMENT_METHOD_CASH = "CASH";
     
-    /**
+    /**giv e
      * Payment status constants
      */
     public static final String PAYMENT_STATUS_SUCCESS = "SUCCESS";
@@ -86,10 +94,27 @@ public class Order {
     
     @Column(name = "payment_date")
     private LocalDateTime paymentDate;
+    
+    /**
+     * Delivery status: PENDING, PROCESSING, SHIPPED, DELIVERED, CANCELLED
+     */
+    @Column(name = "delivery_status")
+    @Builder.Default
+    private String deliveryStatus = DELIVERY_PENDING;
+    
+    @Column(name = "delivery_address")
+    private String deliveryAddress;
+    
+    @Column(name = "delivered_at")
+    private LocalDateTime deliveredAt;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<OrderItem> items = new ArrayList<>();
+    
+    @Column(name = "order_type")
+    @Builder.Default
+    private String orderType = "PRODUCT"; // PRODUCT, RENTAL, or MIXED
 }
 
 

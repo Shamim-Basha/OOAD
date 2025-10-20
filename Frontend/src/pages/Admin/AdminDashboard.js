@@ -37,6 +37,13 @@ const DashboardCards = ({ stats }) => {
           <div className="card-value">{stats.rentals}</div>
         </div>
       </div>
+      <div className="dashboard-card" onClick={() => navigate('/admin/orders')} style={{ cursor: 'pointer' }}>
+        <div className="card-icon orders">📦</div>
+        <div className="card-info">
+          <div className="card-title">Total Orders</div>
+          <div className="card-value">{stats.orders}</div>
+        </div>
+      </div>
       <div className="dashboard-card" style={{ cursor: 'default' }}>
         <div className="card-icon sales">💰</div>
         <div className="card-info">
@@ -50,7 +57,7 @@ const DashboardCards = ({ stats }) => {
 
 const AdminDashboard = () => {
   const [active, setActive] = useState('dashboard');
-  const [stats, setStats] = useState({ users: 0, products: 0, tools: 0, rentals: 0, salesToday: 0});
+  const [stats, setStats] = useState({ users: 0, products: 0, tools: 0, rentals: 0, orders: 0, salesToday: 0});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -93,7 +100,15 @@ const AdminDashboard = () => {
           rentalsCount = Array.isArray(rentalsData) ? rentalsData.length : (rentalsData.data ? rentalsData.data.length : 0);
         } catch {}
 
-        setStats({ users: usersCount, products: productsCount, tools: toolsCount, rentals: rentalsCount, salesToday});
+        // Fetch orders count
+        let ordersCount = 0;
+        try {
+          const ordersRes = await axios.get('http://localhost:8080/api/orders/admin/all');
+          const ordersData = ordersRes.data;
+          ordersCount = Array.isArray(ordersData) ? ordersData.length : 0;
+        } catch {}
+
+        setStats({ users: usersCount, products: productsCount, tools: toolsCount, rentals: rentalsCount, orders: ordersCount, salesToday});
       } catch {
         setStats({ users: "-", products: "-", salesToday: "-"});
       }

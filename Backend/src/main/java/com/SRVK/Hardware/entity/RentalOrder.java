@@ -48,4 +48,7 @@ public class RentalOrder {
     @Column(nullable = false)
     @Builder.Default
     private RentalStatus status = RentalStatus.ACTIVE;
+    
+    @Column(name = "order_id")
+    private Long orderId;
 }

@@ -19,6 +19,7 @@ import UserManagement from './pages/Admin/UserManagement';
 import ProductManagement from './pages/Admin/ProductManagement';
 import ToolManagement from './pages/Admin/ToolManagement';
 import RentalManagement from './pages/Admin/RentalManagement';
+import OrderManagement from './pages/Admin/OrderManagement';
 
 
 
@@ -47,6 +48,7 @@ function AppContent() {
           <Route path="/admin/products" element={<ProductManagement />} />
           <Route path="/admin/tools" element={<ToolManagement />} />
           <Route path="/admin/rentals" element={<RentalManagement />} />
+          <Route path="/admin/orders" element={<OrderManagement />} />
         </Routes>
       </main>
       {!isAdminRoute && <Footer />}

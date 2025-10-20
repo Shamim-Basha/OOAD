@@ -316,77 +316,76 @@ const Cart = () => {
     <div className="cart-page">
       <div className="container">
         <div className="cart-header">
-          <h1>Shopping Cart</h1>
-          <p>Review your items and proceed to checkout</p>
+          <h1>MY CART</h1>
         </div>
 
-        <div className="cart-content">
-          {/* Cart Items Side by Side */}
-          <div className="cart-items-container">
-            {/* Products to Purchase */}
+        <div className="cart-layout">
+          {/* Left Side: Cart Items */}
+          <div className="cart-items-section">
+          {/* Products to Purchase */}
+          {products.length > 0 && (
             <div className="cart-items">
               <div className="cart-items-header">
                 <h2>Products to Purchase ({products.length})</h2>
-                {products.length > 0 && (
-                  <label style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
-                    <input
-                      type="checkbox"
-                      checked={products.length > 0 && products.every(p => !!selectedProducts[`${p.userId}-${p.productId}`])}
-                      onChange={(e) => {
-                        const newSelectedProducts = {};
-                        products.forEach(p => {
-                          newSelectedProducts[`${p.userId}-${p.productId}`] = e.target.checked;
-                        });
-                        setSelectedProducts(newSelectedProducts);
-                      }}
-                      style={{ marginRight: '5px' }}
-                    />
-                    <span>Select All Products</span>
-                  </label>
-                )}
-              </div>
-            {products.map(p => (
-              <div key={`p-${p.userId}-${p.productId}`} className="cart-item">
-                <div className="item-details" style={{ flex: 2, display: 'flex', alignItems: 'center', gap: 12 }}>
+                <label style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
                   <input
                     type="checkbox"
-                    checked={!!selectedProducts[`${p.userId}-${p.productId}`]}
-                    onChange={(e) => setSelectedProducts({
-                      ...selectedProducts,
-                      [`${p.userId}-${p.productId}`]: e.target.checked
-                    })}
-                    style={{ marginRight: 8, alignSelf: 'center' }}
+                    checked={products.length > 0 && products.every(p => !!selectedProducts[`${p.userId}-${p.productId}`])}
+                    onChange={(e) => {
+                      const newSelectedProducts = {};
+                      products.forEach(p => {
+                        newSelectedProducts[`${p.userId}-${p.productId}`] = e.target.checked;
+                      });
+                      setSelectedProducts(newSelectedProducts);
+                    }}
+                    style={{ marginRight: '5px' }}
                   />
-                  <img src={p.imageSrc} alt={p.name} style={{ width: 72, height: 72, objectFit: 'cover', borderRadius: 8 }} />
-                  <div style={{ flex: 1 }}>
-                    <div className="item-name" style={{ fontWeight: 700 }}>{p.name}</div>
-                    <div className="item-price" style={{ marginTop: 6 }}>
-                      <span className="current-price">{formatPrice(p.unitPrice)}</span>
+                  <span>Select All Products</span>
+                </label>
+              </div>
+              {products.map(p => (
+                <div key={`p-${p.userId}-${p.productId}`} className="cart-item">
+                  <div className="item-details" style={{ flex: 2, display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <input
+                      type="checkbox"
+                      checked={!!selectedProducts[`${p.userId}-${p.productId}`]}
+                      onChange={(e) => setSelectedProducts({
+                        ...selectedProducts,
+                        [`${p.userId}-${p.productId}`]: e.target.checked
+                      })}
+                      style={{ marginRight: 8, alignSelf: 'center' }}
+                    />
+                    <img src={p.imageSrc} alt={p.name} style={{ width: 72, height: 72, objectFit: 'cover', borderRadius: 8 }} />
+                    <div style={{ flex: 1 }}>
+                      <div className="item-name" style={{ fontWeight: 700 }}>{p.name}</div>
+                      <div className="item-price" style={{ marginTop: 6 }}>
+                        <span className="current-price">{formatPrice(p.unitPrice)}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="item-quantity">
-                  <div className="quantity-selector">
-                    <button className="quantity-btn" onClick={() => updateProductQty(p.userId, p.productId, p.quantity - 1)} disabled={p.quantity <= 1}>-</button>
-                    <input type="number" value={p.quantity} onChange={(e) => updateProductQty(p.userId, p.productId, parseInt(e.target.value) || 1)} className="quantity-input" min="1" />
-                    <button className="quantity-btn" onClick={() => updateProductQty(p.userId, p.productId, p.quantity + 1)}>+</button>
+                  <div className="item-quantity">
+                    <div className="quantity-selector">
+                      <button className="quantity-btn" onClick={() => updateProductQty(p.userId, p.productId, p.quantity - 1)} disabled={p.quantity <= 1}>-</button>
+                      <input type="number" value={p.quantity} onChange={(e) => updateProductQty(p.userId, p.productId, parseInt(e.target.value) || 1)} className="quantity-input" min="1" />
+                      <button className="quantity-btn" onClick={() => updateProductQty(p.userId, p.productId, p.quantity + 1)}>+</button>
+                    </div>
                   </div>
+                  <div className="item-total">
+                    <span className="total-price">{formatPrice(p.unitPrice * p.quantity)}</span>
+                  </div>
+                  <button className="remove-btn" onClick={() => removeProduct(p.userId, p.productId)} title="Remove item">
+                    <FaTrash />
+                  </button>
                 </div>
-                <div className="item-total">
-                  <span className="total-price">{formatPrice(p.unitPrice * p.quantity)}</span>
-                </div>
-                <button className="remove-btn" onClick={() => removeProduct(p.userId, p.productId)} title="Remove item">
-                  <FaTrash />
-                </button>
-              </div>
-            ))}
+              ))}
             </div>
+          )}
 
-            {/* Tools to Rent */}
-            <div className="cart-items">
+          {/* Tools to Rent - Full Width Below Products */}
+          {rentals.length > 0 && (
+            <div className="cart-items" style={{ marginTop: products.length > 0 ? '24px' : '0' }}>
               <div className="cart-items-header">
                 <h2>Tools to Rent ({rentals.length})</h2>
-              {rentals.length > 0 && (
                 <label style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
                   <input
                     type="checkbox"
@@ -402,12 +401,13 @@ const Cart = () => {
                   />
                   <span>Select All Rentals</span>
                 </label>
-                )}
               </div>
               {rentals.map(r => (
                 <div key={`r-${r.userId}-${r.rentalId}`} className="cart-item rental-cart-item">
-                  <div className="rental-item-main">
-                    <div className="rental-left-section">
+                  <div className="rental-item-with-dates">
+                    {/* Top Row: Checkbox, Image/Name, Quantity, Total, Delete */}
+                    <div className="rental-top-row">
+                      {/* Checkbox */}
                       <input
                         type="checkbox"
                         checked={!!selectedRentals[`${r.userId}-${r.rentalId}`]}
@@ -415,37 +415,22 @@ const Cart = () => {
                           ...selectedRentals,
                           [`${r.userId}-${r.rentalId}`]: e.target.checked
                         })}
-                        style={{ marginRight: 8, alignSelf: 'flex-start', marginTop: 8 }}
+                        style={{ marginRight: 12 }}
                       />
-                      <img src={r.imageSrc} alt={r.name} style={{ width: 72, height: 72, objectFit: 'cover', borderRadius: 8 }} />
-                      <div style={{ flex: 1 }}>
-                        <div className="item-name" style={{ fontWeight: 700, fontSize: '15px' }}>{r.name}</div>
-                        <div className="item-price" style={{ marginTop: 6 }}>
-                          <span className="current-price" style={{ fontSize: '13px' }}>{formatPrice(r.dailyRate)} / day</span>
-                        </div>
-                      </div>
-                      <div className="rental-dates-container">
-                        <div className="rental-dates">
-                          <div>
-                            <label>Start Date</label>
-                            <input 
-                              type="date" 
-                              value={r.rentalStart || ''} 
-                              onChange={(e) => updateRental(r.userId, r.rentalId, { rentalStart: e.target.value, rentalEnd: r.rentalEnd, quantity: r.quantity })} 
-                            />
-                          </div>
-                          <div>
-                            <label>End Date</label>
-                            <input 
-                              type="date" 
-                              value={r.rentalEnd || ''} 
-                              onChange={(e) => updateRental(r.userId, r.rentalId, { rentalStart: r.rentalStart, rentalEnd: e.target.value, quantity: r.quantity })} 
-                            />
+                      
+                      {/* Image and Name/Price */}
+                      <div style={{ display: 'flex', gap: 12, flex: 1 }}>
+                        <img src={r.imageSrc} alt={r.name} style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 8 }} />
+                        
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, justifyContent: 'center' }}>
+                          <div className="item-name" style={{ fontWeight: 700, fontSize: '16px' }}>{r.name}</div>
+                          <div className="item-price">
+                            <span className="current-price" style={{ fontSize: '14px' }}>{formatPrice(r.dailyRate)} / day</span>
                           </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="rental-right-section">
+                      
+                      {/* Quantity Controls */}
                       <div className="item-quantity">
                         <div className="quantity-selector">
                           <button className="quantity-btn" onClick={() => updateRental(r.userId, r.rentalId, { quantity: r.quantity - 1, rentalStart: r.rentalStart, rentalEnd: r.rentalEnd })} disabled={r.quantity <= 1}>-</button>
@@ -453,20 +438,49 @@ const Cart = () => {
                           <button className="quantity-btn" onClick={() => updateRental(r.userId, r.rentalId, { quantity: r.quantity + 1, rentalStart: r.rentalStart, rentalEnd: r.rentalEnd })}>+</button>
                         </div>
                       </div>
+                      
+                      {/* Total Price */}
                       <div className="item-total">
                         <span className="total-price">{formatPrice(r.subtotal)}</span>
                       </div>
+                      
+                      {/* Delete Button */}
                       <button className="remove-btn" onClick={() => removeRental(r.userId, r.rentalId)} title="Remove item">
                         <FaTrash />
                       </button>
+                    </div>
+                    
+                    {/* Bottom Row: Date Picker Below Image */}
+                    <div className="rental-dates-below">
+                      <div className="rental-dates-spacer"></div>
+                      <div className="rental-dates-section">
+                        <div className="date-input-group">
+                          <label>Start Date</label>
+                          <input 
+                            type="date" 
+                            value={r.rentalStart || ''} 
+                            onChange={(e) => updateRental(r.userId, r.rentalId, { rentalStart: e.target.value, rentalEnd: r.rentalEnd, quantity: r.quantity })} 
+                          />
+                        </div>
+                        <div className="date-input-group">
+                          <label>End Date</label>
+                          <input 
+                            type="date" 
+                            value={r.rentalEnd || ''} 
+                            onChange={(e) => updateRental(r.userId, r.rentalId, { rentalStart: r.rentalStart, rentalEnd: e.target.value, quantity: r.quantity })} 
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
+          )}
           </div>
+          {/* End Left Side: Cart Items Section */}
 
-          {/* Cart Summary */}
+          {/* Right Side: Order Summary (Fixed) */}
           <div className="cart-summary">
             <h2>Order Summary</h2>
             
@@ -535,7 +549,9 @@ const Cart = () => {
              Object.values(selectedRentals).filter(Boolean).length === 0 && 
              <p style={{ marginTop: 12, color: '#c00' }}>Please select at least one item to checkout</p>}
           </div>
+          {/* End Right Side: Order Summary */}
         </div>
+        {/* End cart-layout */}
 
         {/* Payment Form Modal */}
         {showPaymentForm && (

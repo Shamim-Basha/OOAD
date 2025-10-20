@@ -142,18 +142,38 @@ public class CheckoutService {
         // Update order with payment information
         order.setPaymentAmount(total);
         order.setPaymentMethod(request.getPaymentMethod());
-        order.setPaymentStatus(Order.PAYMENT_STATUS_SUCCESS);
+        
+        // For Cash on Delivery, mark as COD (not paid yet)
+        if ("CASH".equals(request.getPaymentMethod())) {
+            order.setPaymentStatus("COD");
+            order.setStatus(Order.STATUS_CREATED);
+        } else {
+            order.setPaymentStatus(Order.PAYMENT_STATUS_SUCCESS);
+            order.setStatus(Order.STATUS_PAID);
+            order.setPaymentDate(LocalDateTime.now());
+        }
+        
         // order.setTransactionId(result.getTransactionId());
-        order.setPaymentDate(LocalDateTime.now());
         order.setUpdatedAt(LocalDateTime.now());
-        order.setStatus(Order.STATUS_PAID);
+        
+        // Determine order type
+        boolean hasProducts = !orderItems.isEmpty();
+        boolean hasRentals = !rentalOrders.isEmpty();
+        if (hasProducts && hasRentals) {
+            order.setOrderType("MIXED");
+        } else if (hasRentals) {
+            order.setOrderType("RENTAL");
+        } else {
+            order.setOrderType("PRODUCT");
+        }
         
         orderRepository.save(order);
 
-        // Save all rental records now that payment is confirmed
+        // Save all rental records now that payment is confirmed and link them to the order
         if (!rentalOrders.isEmpty()) {
             // We're not using a batch save here to ensure each rental order gets its own ID
             for (RentalOrder rentalOrder : rentalOrders) {
+                rentalOrder.setOrderId(order.getId()); // Link to the main order
                 RentalOrder savedRentalOrder = rentalOrderRepository.save(rentalOrder);
                 log.info("Created rental order record: {}", savedRentalOrder);
             }

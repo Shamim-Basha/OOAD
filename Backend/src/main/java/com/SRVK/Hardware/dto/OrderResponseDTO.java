@@ -18,12 +18,18 @@ import java.util.List;
 @AllArgsConstructor
 public class OrderResponseDTO {
     private Long orderId;
+    private Long userId;
+    private String userName;
+    private String userEmail;
     private BigDecimal total;
     private List<Item> items;
     private String paymentStatus;
     private String transactionId;
     private String paymentMethod;
     private LocalDateTime orderDate;
+    private String deliveryStatus;
+    private String deliveryAddress;
+    private LocalDateTime deliveredAt;
     
     @Data
     @Builder

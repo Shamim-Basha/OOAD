@@ -33,11 +33,13 @@ const AdminSidebar = () => {
               Rental Management
             </li>
           </Link>
+          <Link to="/admin/orders" className="sidebar-link" style={{ textDecoration: 'none' }}>
+            <li className={location.pathname === '/admin/orders' ? 'active' : ''}>
+              Orders & Delivery
+            </li>
+          </Link>
           <li>
             Sales Reports
-          </li>
-          <li>
-            Orders & Deliveries
           </li>
           <li>
             Logout
