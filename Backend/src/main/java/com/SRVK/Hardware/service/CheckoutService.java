@@ -159,12 +159,17 @@ public class CheckoutService {
         // Determine order type
         boolean hasProducts = !orderItems.isEmpty();
         boolean hasRentals = !rentalOrders.isEmpty();
-        if (hasProducts && hasRentals) {
-            order.setOrderType("MIXED");
-        } else if (hasRentals) {
-            order.setOrderType("RENTAL");
-        } else {
-            order.setOrderType("PRODUCT");
+        try {
+            if (hasProducts && hasRentals) {
+                order.setOrderType("MIXED");
+            } else if (hasRentals) {
+                order.setOrderType("RENTAL");
+            } else {
+                order.setOrderType("PRODUCT");
+            }
+        } catch (Exception e) {
+            log.warn("Could not set order type (column may not exist yet): {}", e.getMessage());
+            // Continue without setting order type if column doesn't exist
         }
         
         orderRepository.save(order);
@@ -223,7 +228,7 @@ public class CheckoutService {
             items.add(OrderResponseDTO.Item.builder()
                 .type("RENTAL")
                 .productId(null)
-                .rentalId(savedRental.getToolId())
+                .rentalId(savedRental.getId())
                 .name(tool != null ? tool.getName() : "Unknown Tool")
                 .quantity(savedRental.getQuantity())
                 .unitPrice(tool != null ? tool.getDailyRate() : BigDecimal.ZERO)

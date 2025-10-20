@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { FaStar, FaCalendar, FaClock, FaTruck, FaShieldAlt, FaArrowLeft, FaPhone, FaEnvelope, FaTools } from 'react-icons/fa';
+import { FaStar, FaCalendar, FaClock, FaTruck, FaShieldAlt, FaArrowLeft, FaPhone, FaEnvelope, FaTools, FaCheckCircle, FaTimesCircle, FaExclamationTriangle } from 'react-icons/fa';
 import axios from 'axios';
 import './ServiceDetail.css';
 
@@ -13,6 +13,7 @@ const ServiceDetail = () => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [quantity, setQuantity] = useState(1);
+  const [submitError, setSubmitError] = useState('');
 
   // Calculate rental days from selected dates
   useEffect(() => {
@@ -31,6 +32,33 @@ const ServiceDetail = () => {
   const [activeTab, setActiveTab] = useState('details');
 
   const navigate = useNavigate();
+
+  // Check for pending rental after login
+  useEffect(() => {
+    const pendingRental = localStorage.getItem('pendingRental');
+    if (pendingRental) {
+      try {
+        const rentalData = JSON.parse(pendingRental);
+        // Check if this is the same service and user is now logged in
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        if (rentalData.serviceId == id && user.id) {
+          // Pre-fill the form with the stored data
+          setStartDate(rentalData.startDate);
+          setEndDate(rentalData.endDate);
+          setQuantity(rentalData.quantity);
+          
+          // Clear the pending rental
+          localStorage.removeItem('pendingRental');
+          
+          // Show a message
+          alert(`Welcome back! Your rental details for ${rentalData.serviceName} have been restored. You can now proceed to add it to cart.`);
+        }
+      } catch (e) {
+        console.error('Error processing pending rental:', e);
+        localStorage.removeItem('pendingRental');
+      }
+    }
+  }, [id]);
 
   useEffect(() => {
     const fetchTool = async () => {
@@ -109,6 +137,7 @@ const ServiceDetail = () => {
             rating: 4.8,
             reviews: [],
             available: !!t.available,
+            stockQuantity: Number(t.stockQuantity ?? 0),
             description: t.description || '',
             specifications: defaultSpecs,
             features: [],
@@ -162,23 +191,45 @@ const ServiceDetail = () => {
     if (!service) return;
     // Basic client-side validation to match backend constraints
     if (!startDate || !endDate) {
-      alert('Please select start and end dates.');
+      setSubmitError('Please select start and end dates.');
       return;
     }
     const todayStr = new Date().toISOString().split('T')[0];
     if (startDate < todayStr) {
-      alert('Start date cannot be in the past.');
+      setSubmitError('Start date cannot be in the past.');
       return;
     }
     if (endDate <= startDate) {
-      alert('End date must be after start date.');
+      setSubmitError('End date must be after start date.');
       return;
     }
 
     try {
+      setSubmitError('');
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       const USER = localStorage.getItem('user');
-      const userId = USER? JSON.parse(USER)["id"] : 1;
+      const userId = USER? JSON.parse(USER)["id"] : null;
+      
+      // Check if user is logged in
+      if (!userId) {
+        // Store the current page URL and rental data for after login
+        const rentalData = {
+          serviceId: service.id,
+          serviceName: service.name,
+          startDate,
+          endDate,
+          quantity,
+          returnUrl: window.location.pathname + window.location.search
+        };
+        
+        // Store rental data in localStorage for after login
+        localStorage.setItem('pendingRental', JSON.stringify(rentalData));
+        
+        // Show a friendly message and redirect to login
+        setSubmitError('Please log in to add items to cart. You will be redirected back here after login.');
+        navigate('/login');
+        return;
+      }
       
       // Add rental item to cart instead of creating rental directly
       const payload = {
@@ -195,18 +246,21 @@ const ServiceDetail = () => {
       try {
         const res = await axios.post('http://localhost:8080/api/cart/rental/add', payload);
         console.log('Rental cart add response:', res.data);
-        alert('Item added to cart successfully!');
+        // Navigate to cart on success; message can be shown in cart if needed
         navigate('/cart');
       } catch (apiError) {
         console.error('API Error:', apiError);
         console.error('Response:', apiError.response);
-        const message = apiError?.response?.data || apiError?.message || 'Failed to add item to cart';
-        alert(`Error adding to cart: ${message}`);
+        const message = (apiError?.response?.data?.message)
+          || (typeof apiError?.response?.data === 'string' ? apiError.response.data : null)
+          || apiError?.message
+          || 'Failed to add item to cart';
+        setSubmitError(message);
       }
     } catch (e) {
       console.error('General error in handleRentNow:', e);
       const message = e?.response?.data?.message || e?.message || 'Failed to add item to cart';
-      alert(`Error: ${message}`);
+      setSubmitError(message);
     }
   };
 
@@ -257,8 +311,34 @@ const ServiceDetail = () => {
         <div className="service-content">
           {/* Service Art Placeholder */}
           <div className="service-art">
-            <div className="art-circle large">
-              <FaTools size={40} />
+            <div className="art-container">
+              <div className="art-circle large">
+                <FaTools size={60} />
+              </div>
+              <div className="art-info">
+                <h3>Professional Equipment</h3>
+                <p>High-quality construction tools and machinery</p>
+              </div>
+            </div>
+            <div className="art-features">
+              <div className="art-feature">
+                <div className="feature-icon">
+                  <FaShieldAlt />
+                </div>
+                <span>Insured Equipment</span>
+              </div>
+              <div className="art-feature">
+                <div className="feature-icon">
+                  <FaTruck />
+                </div>
+                <span>Free Delivery</span>
+              </div>
+              <div className="art-feature">
+                <div className="feature-icon">
+                  <FaPhone />
+                </div>
+                <span>24/7 Support</span>
+              </div>
             </div>
           </div>
 
@@ -283,6 +363,36 @@ const ServiceDetail = () => {
               <span className={`availability-status ${service.available ? 'available' : 'unavailable'}`}>
                 {service.available ? 'Available for Rent' : 'Currently Unavailable'}
               </span>
+              <div className="stock-status" style={{ marginTop: 10 }}>
+                {service.stockQuantity <= 0 ? (
+                  <span style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 8,
+                    padding: '6px 10px', borderRadius: 999,
+                    background: '#f8d7da', color: '#842029', border: '1px solid #f5c2c7',
+                    fontWeight: 600
+                  }}>
+                    <FaTimesCircle /> Out of stock
+                  </span>
+                ) : service.stockQuantity <= 3 ? (
+                  <span style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 8,
+                    padding: '6px 10px', borderRadius: 999,
+                    background: '#fff3cd', color: '#664d03', border: '1px solid #ffe69c',
+                    fontWeight: 600
+                  }}>
+                    <FaExclamationTriangle /> Low stock: {service.stockQuantity}
+                  </span>
+                ) : (
+                  <span style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 8,
+                    padding: '6px 10px', borderRadius: 999,
+                    background: '#d1e7dd', color: '#0f5132', border: '1px solid #badbcc',
+                    fontWeight: 600
+                  }}>
+                    <FaCheckCircle /> In stock: {service.stockQuantity}
+                  </span>
+                )}
+              </div>
             </div>
 
             <div className="service-description">
@@ -292,6 +402,49 @@ const ServiceDetail = () => {
             {/* Rental Form */}
             <div className="rental-form">
               <h3>Rental Details</h3>
+              {submitError && (
+                <div className="form-error" style={{
+                  marginTop: 8,
+                  marginBottom: 12,
+                  padding: '10px 12px',
+                  border: '1px solid #f5c2c7',
+                  background: '#f8d7da',
+                  color: '#842029',
+                  borderRadius: 4
+                }}>
+                  {submitError}
+                </div>
+              )}
+              
+              {/* Login prompt for non-logged-in users */}
+              {!JSON.parse(localStorage.getItem('user') || '{}').id && (
+                <div className="login-prompt">
+                  <div className="login-prompt-content">
+                    <span className="login-icon">🔒</span>
+                    <div className="login-text">
+                      <strong>Login Required</strong>
+                      <p>Please log in to add items to cart and complete your rental</p>
+                    </div>
+                    <button 
+                      className="btn btn-outline login-btn"
+                      onClick={() => {
+                        const rentalData = {
+                          serviceId: service.id,
+                          serviceName: service.name,
+                          startDate,
+                          endDate,
+                          quantity,
+                          returnUrl: window.location.pathname + window.location.search
+                        };
+                        localStorage.setItem('pendingRental', JSON.stringify(rentalData));
+                        navigate('/login');
+                      }}
+                    >
+                      Login Now
+                    </button>
+                  </div>
+                </div>
+              )}
               
               <div className="form-row">
                 <div className="form-group">
@@ -312,7 +465,7 @@ const ServiceDetail = () => {
                     onChange={(e) => {
                       const selectedEndDate = e.target.value;
                       if (startDate && selectedEndDate <= startDate) {
-                        alert('End date must be after start date');
+                        setSubmitError('End date must be after start date');
                         return;
                       }
                       setEndDate(selectedEndDate);
@@ -399,7 +552,7 @@ const ServiceDetail = () => {
                 <button
                   className="btn btn-primary rent-btn"
                   onClick={handleRentNow}
-                  disabled={!service.available || !startDate || !endDate}
+                  disabled={!service.available || service.stockQuantity <= 0 || !startDate || !endDate}
                 >
                   Rent Now
                 </button>

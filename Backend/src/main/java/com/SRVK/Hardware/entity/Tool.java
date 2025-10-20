@@ -39,7 +39,8 @@ public class Tool {
     @Column(length = 2000)
     private String description;
 
-    private String imageUrl;
+    @Lob
+    private byte[] image;
 
     // Helper method to check if tool has available stock
     public boolean hasAvailableStock() {

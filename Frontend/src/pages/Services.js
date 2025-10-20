@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaSearch, FaCalendar, FaClock, FaTruck, FaTools, FaStar } from 'react-icons/fa';
+import { FaSearch, FaCalendar, FaClock, FaTruck, FaTools, FaStar, FaCheckCircle, FaTimesCircle, FaExclamationTriangle } from 'react-icons/fa';
 import axios from 'axios';
+import { convertByteToImage } from '../utils/imageHelpers';
 import './Services.css';
 
 const Services = () => {
@@ -36,10 +37,12 @@ const Services = () => {
           rating: 4.8,
           reviews: 0,
           available: !!t.available,
+          stockQuantity: Number(t.stockQuantity ?? 0),
           description: t.description || '',
           features: [],
           minRentalDays: 1,
-          maxRentalDays: 30
+          maxRentalDays: 30,
+          imageSrc: convertByteToImage(t.image, 'https://via.placeholder.com/300?text=No+Image')
         }));
         setServices(mapped);
         const uniqueCats = Array.from(new Set(mapped.map(m => m.category))).filter(Boolean);
@@ -197,8 +200,8 @@ const Services = () => {
             {filteredServices.map(service => (
               <div key={service.id} className="service-card">
                 <div className="service-art">
-                  <div className="art-circle">
-                    <FaTools size={28} />
+                  <div className="service-image">
+                    <img src={service.imageSrc} alt={service.name} />
                   </div>
                   {!service.available && (
                     <div className="not-available">Currently Unavailable</div>
@@ -219,6 +222,37 @@ const Services = () => {
                     <span className="current-price">{formatPrice(service.price)}</span>
                     <span className="price-type">/{service.priceType}</span>
                   </div>
+
+                <div className="service-availability" style={{ marginTop: 8 }}>
+                  {service.stockQuantity <= 0 ? (
+                    <span style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 6,
+                      padding: '4px 8px', borderRadius: 999,
+                      background: '#f8d7da', color: '#842029', border: '1px solid #f5c2c7',
+                      fontWeight: 600, fontSize: 12
+                    }}>
+                      <FaTimesCircle /> Out of stock
+                    </span>
+                  ) : service.stockQuantity <= 3 ? (
+                    <span style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 6,
+                      padding: '4px 8px', borderRadius: 999,
+                      background: '#fff3cd', color: '#664d03', border: '1px solid #ffe69c',
+                      fontWeight: 600, fontSize: 12
+                    }}>
+                      <FaExclamationTriangle /> Low stock: {service.stockQuantity}
+                    </span>
+                  ) : (
+                    <span style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 6,
+                      padding: '4px 8px', borderRadius: 999,
+                      background: '#d1e7dd', color: '#0f5132', border: '1px solid #badbcc',
+                      fontWeight: 600, fontSize: 12
+                    }}>
+                      <FaCheckCircle /> In stock: {service.stockQuantity}
+                    </span>
+                  )}
+                </div>
 
                   <div className="service-features">
                     <h4>Features:</h4>
@@ -244,7 +278,7 @@ const Services = () => {
                     <button
                       className="btn btn-primary"
                       onClick={() => handleRentNow(service)}
-                      disabled={!service.available}
+                      disabled={!service.available || service.stockQuantity <= 0}
                     >
                       Rent Now
                     </button>
