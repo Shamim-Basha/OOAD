@@ -2,6 +2,7 @@ import React from "react";
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import AdminRoute from './components/AdminRoute'; // Import the AdminRoute component
 
 import './App.css';
 import Home from './pages/Home';
@@ -25,12 +26,14 @@ import Contact from './pages/Contact';
 function AppContent() {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
+  
   return (
     <div className={isAdminRoute ? "App app-has-sidebar" : "App"}>
       {!isAdminRoute && <Navbar />}
       {isAdminRoute && <AdminSidebar />}
       <main>
         <Routes>
+          {/* Public Routes */}
           <Route path="/" element={<Home />} />
           <Route path="/rentals" element={<Services />} />
           <Route path="/products" element={<Products />} />
@@ -42,11 +45,48 @@ function AppContent() {
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
           <Route path="/profile" element={<UserProfile/>}/>
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/admin/users" element={<UserManagement />} />
-          <Route path="/admin/products" element={<ProductManagement />} />
-          <Route path="/admin/tools" element={<ToolManagement />} />
-          <Route path="/admin/rentals" element={<RentalManagement />} />
+          
+          {/* Protected Admin Routes */}
+          <Route 
+            path="/admin" 
+            element={
+              <AdminRoute>
+                <AdminDashboard />
+              </AdminRoute>
+            } 
+          />
+          <Route 
+            path="/admin/users" 
+            element={
+              <AdminRoute>
+                <UserManagement />
+              </AdminRoute>
+            } 
+          />
+          <Route 
+            path="/admin/products" 
+            element={
+              <AdminRoute>
+                <ProductManagement />
+              </AdminRoute>
+            } 
+          />
+          <Route 
+            path="/admin/tools" 
+            element={
+              <AdminRoute>
+                <ToolManagement />
+              </AdminRoute>
+            } 
+          />
+          <Route 
+            path="/admin/rentals" 
+            element={
+              <AdminRoute>
+                <RentalManagement />
+              </AdminRoute>
+            } 
+          />
         </Routes>
       </main>
       {!isAdminRoute && <Footer />}
@@ -63,4 +103,3 @@ function App() {
 }
 
 export default App;
-
