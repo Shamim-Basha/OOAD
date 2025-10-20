@@ -1,5 +1,6 @@
 package com.SRVK.Hardware.dto;
 
+import com.SRVK.Hardware.entity.User;
 import lombok.*;
 
 @Getter @Setter @Builder
@@ -15,4 +16,5 @@ public class ResponseDTO {
     private String postalCode;
     private String token;
     private String message;
+    private User.UserRole role;
 }
