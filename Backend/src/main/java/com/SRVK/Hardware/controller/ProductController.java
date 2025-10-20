@@ -21,13 +21,11 @@ public class ProductController {
         this.productService = productService;
     }
 
-    // ✅ GET all products
     @GetMapping
     public ResponseEntity<List<Product>> getAllProducts() {
         return ResponseEntity.ok(productService.getAllProducts());
     }
 
-    // ✅ GET single product
     @GetMapping("/{id}")
     public ResponseEntity<Product> getProduct(@PathVariable Long id) {
         try {
@@ -42,7 +40,6 @@ public class ProductController {
         }
     }
 
-    // ✅ POST: Add new product (supports multipart/form-data)
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> addNewProduct(
             @RequestParam("name") String name,
@@ -76,7 +73,6 @@ public class ProductController {
         }
     }
 
-    // ✅ PUT: Update existing product (supports multipart/form-data)
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updateProduct(
             @PathVariable Long id,
@@ -115,7 +111,6 @@ public class ProductController {
         }
     }
 
-    // ✅ DELETE: Remove product
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
         try {
