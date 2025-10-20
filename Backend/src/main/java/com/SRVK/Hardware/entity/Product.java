@@ -26,7 +26,7 @@ public class Product {
     @Column(name = "category", nullable = false, length = 50)
     private String category;
 
-    @Column(name = "subCategory", nullable = false, length = 50)
+    @Column(name = "sub_category", nullable = false, length = 50)
     private String subCategory;
 
     @Column(name = "description", nullable = false, length = 100)
