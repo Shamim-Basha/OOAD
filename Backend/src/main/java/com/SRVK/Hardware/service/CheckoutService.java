@@ -219,17 +219,19 @@ public class CheckoutService {
         
         // Add rental items
         for (RentalOrder savedRental : rentalOrders) {
-            Tool tool = toolRepository.findById(savedRental.getToolId()).orElse(null);
-            items.add(OrderResponseDTO.Item.builder()
-                .type("RENTAL")
-                .productId(null)
-                .rentalId(savedRental.getToolId())
-                .name(tool != null ? tool.getName() : "Unknown Tool")
+            // Get tool information for the DTO
+            Tool tool = toolRepository.findById(savedRental.getToolId())
+                .orElseThrow(() -> new RuntimeException("Tool not found: " + savedRental.getToolId()));
+            
+            rentalItems.add(RentalOrderDTO.builder()
+                .rentalOrderId(savedRental.getId())
+                .toolId(savedRental.getToolId())
                 .quantity(savedRental.getQuantity())
-                .unitPrice(tool != null ? tool.getDailyRate() : BigDecimal.ZERO)
-                .subtotal(savedRental.getTotalCost())
-                .rentalStart(savedRental.getStartDate().atStartOfDay())
-                .rentalEnd(savedRental.getEndDate().atStartOfDay())
+                .rentalStart(savedRental.getStartDate())
+                .rentalEnd(savedRental.getEndDate())
+                .totalCost(savedRental.getTotalCost())
+                .status("ACTIVE")
+                .toolName(tool.getName())
                 .build());
         }
         

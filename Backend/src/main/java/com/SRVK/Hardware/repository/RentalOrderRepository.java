@@ -16,6 +16,12 @@ public interface RentalOrderRepository extends JpaRepository<RentalOrder, Long> 
 
     List<RentalOrder> findByToolId(Long toolId);
 
+    /**
+     * Delete all rental orders for a specific tool (dev/test convenience).
+     * Prefer marking tools unavailable in production to preserve history.
+     */
+    void deleteByToolId(Long toolId);
+
     // Find overlapping rentals for a specific tool and date range
     @Query("SELECT r FROM RentalOrder r WHERE r.toolId = :toolId " +
            "AND ((r.startDate <= :endDate AND r.endDate >= :startDate))")
