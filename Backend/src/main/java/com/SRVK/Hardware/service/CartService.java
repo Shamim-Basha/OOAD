@@ -340,7 +340,37 @@ public class CartService {
     }
 
     /**
-     * Process the checkout for a user's cart
+     * Clear specific products and rentals from the user's cart (based on selection)
+     * @param userId the ID of the user
+     * @param productIds list of product IDs to remove (can be null or empty)
+     * @param toolIds list of tool IDs to remove (can be null or empty)
+     */
+    @Transactional
+    public void clearSelectedItems(Long userId, List<Long> productIds, List<Long> toolIds) {
+        // Delete selected product cart items
+        if (productIds != null && !productIds.isEmpty()) {
+            for (Long productId : productIds) {
+                productCartRepository.deleteByIdUserIdAndIdProductId(userId, productId);
+                log.info("Removed product {} from cart of user {}", productId, userId);
+            }
+        }
+
+        // Delete selected rental cart items
+        if (toolIds != null && !toolIds.isEmpty()) {
+            for (Long toolId : toolIds) {
+                rentalCartRepository.deleteByIdUserIdAndIdToolId(userId, toolId);
+                log.info("Removed rental tool {} from cart of user {}", toolId, userId);
+            }
+        }
+
+        log.info("Cleared selected items from cart for user {} - {} products, {} rentals", 
+                userId, 
+                productIds != null ? productIds.size() : 0, 
+                toolIds != null ? toolIds.size() : 0);
+    }
+
+    /**
+     * Clear entire cart for a user (all products and rentals)
      * @param userId the ID of the user
      */
     @Transactional
@@ -353,7 +383,7 @@ public class CartService {
         List<RentalCart> rentalCarts = rentalCartRepository.findByIdUserId(userId);
         rentalCartRepository.deleteAll(rentalCarts);
 
-        log.info("Cleared cart for user {}", userId);
+        log.info("Cleared entire cart for user {}", userId);
     }
 
     /**
