@@ -19,7 +19,7 @@ import UserManagement from './pages/Admin/UserManagement';
 import ProductManagement from './pages/Admin/ProductManagement';
 import ToolManagement from './pages/Admin/ToolManagement';
 import RentalManagement from './pages/Admin/RentalManagement';
-
+import Contact from './pages/Contact';
 
 
 function AppContent() {
@@ -35,7 +35,7 @@ function AppContent() {
           <Route path="/rentals" element={<Services />} />
           <Route path="/products" element={<Products />} />
           <Route path="/cart" element={<Cart />} />
-          <Route path="/contact" element={<Home />} />
+          <Route path="/contact" element={<Contact />} />
           <Route path="/products/:id" element={<ProductDetail/>} />
           <Route path="/service/:id" element={<ServiceDetail />} />
           <Route path="/rental/:id" element={<ServiceDetail />} />
