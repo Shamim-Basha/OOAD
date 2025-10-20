@@ -188,7 +188,11 @@ const Products = () => {
                   type="number"
                   placeholder="Min"
                   value={priceRange[0]}
-                  onChange={(e) => setPriceRange([parseInt(e.target.value, 10) || 0, priceRange[1]])}
+                  min="0"
+                  onChange={(e) => {
+                    const newMin = Math.max(0, parseInt(e.target.value, 10) || 0);
+                    setPriceRange([newMin, priceRange[1]]);
+                  }}
                   className="price-input"
                 />
                 <span>-</span>
@@ -196,11 +200,17 @@ const Products = () => {
                   type="number"
                   placeholder="Max"
                   value={priceRange[1]}
-                  onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value, 10) || 100000])}
+                  min="0"
+                  onChange={(e) => {
+                    const newMax = Math.max(0, parseInt(e.target.value, 10) || 0);
+                    setPriceRange([priceRange[0], newMax]);
+                  }}
                   className="price-input"
                 />
               </div>
             </div>
+
+            
 
             <div className="filter-group">
               <label>Sort By:</label>
