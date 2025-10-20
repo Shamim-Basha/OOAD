@@ -2,7 +2,7 @@ import React from "react";
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
-import AdminRoute from './components/AdminRoute'; // Import the AdminRoute component
+import AdminRoute from './components/AdminRoute';
 
 import './App.css';
 import Home from './pages/Home';

@@ -8,6 +8,7 @@ const AdminSidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+
   const handleLogout = () => {
     setShowLogoutModal(true);
   };
@@ -27,7 +28,7 @@ const AdminSidebar = () => {
   return (
     <>
     <aside className="admin-sidebar">
-      <div className="sidebar-logo" onClick={navigate("/")}>Lanka Hardware</div>
+      <div className="sidebar-logo" onClick={()=> navigate('/')} style={{cursor : 'pointer'}}>Lanka Hardware</div>
       <nav className="sidebar-nav">
         <ul>
           <Link to="/admin" className="sidebar-link" style={{ textDecoration: 'none' }}>
