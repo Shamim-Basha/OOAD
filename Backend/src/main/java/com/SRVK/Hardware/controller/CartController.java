@@ -108,9 +108,28 @@ public class CartController {
             if (!userId.equals(request.getUserId())) {
                 return ResponseEntity.badRequest().body("{\"success\":false,\"message\":\"userId path and body mismatch\"}");
             }
+            
+            // Extract product IDs and tool IDs from the request
+            List<Long> productIds = request.getSelectedProducts() != null 
+                ? request.getSelectedProducts().stream()
+                    .map(CheckoutRequestDTO.Key::getProductId)
+                    .filter(id -> id != null)
+                    .toList()
+                : null;
+                
+            List<Long> toolIds = request.getSelectedRentals() != null
+                ? request.getSelectedRentals().stream()
+                    .map(CheckoutRequestDTO.Key::getRentalId)
+                    .filter(id -> id != null)
+                    .toList()
+                : null;
+            
+            // Process checkout
             OrderResponseDTO response = checkoutService.checkout(request);
-            // Clear the cart after successful checkout
-            cartService.clearCart(userId);
+            
+            // Clear only the selected items from the cart after successful checkout
+            cartService.clearSelectedItems(userId, productIds, toolIds);
+            
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("{\"success\":false,\"message\":\""+e.getMessage()+"\"}");

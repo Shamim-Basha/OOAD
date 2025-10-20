@@ -49,7 +49,7 @@ const Login = () => {
         });
 
         localStorage.setItem('user', JSON.stringify(data));
-        if (data.role === 'admin') {
+        if (data.role === 'ADMIN') {
         localStorage.setItem('isAdmin', 'true');
         setTimeout(() => {
           navigate('/admin');

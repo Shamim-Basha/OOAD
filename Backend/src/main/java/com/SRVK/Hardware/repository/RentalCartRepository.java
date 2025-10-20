@@ -4,6 +4,7 @@ import com.SRVK.Hardware.entity.RentalCart;
 import com.SRVK.Hardware.entity.RentalCart.RentalCartKey;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 /**
@@ -24,6 +25,7 @@ public interface RentalCartRepository extends JpaRepository<RentalCart, RentalCa
      * @param userId the user ID
      * @param toolId the tool ID
      */
+    @Transactional
     void deleteByIdUserIdAndIdToolId(Long userId, Long toolId);
 
     /**

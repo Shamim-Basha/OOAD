@@ -32,6 +32,8 @@ public class UserService {
     }
 
     public ResponseDTO toResponseDTO(User user) {
+        UserRole role = UserRole.CUSTOMER;
+        if (user.getRole() != null) {role = user.getRole();}
         return ResponseDTO.builder()
                 .id(user.getId())
                 .username(user.getUsername())

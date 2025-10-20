@@ -6,6 +6,7 @@ const AdminRoute = ({ children }) => {
   const isAdmin = user && user.role === 'ADMIN';
 
   if (!isAdmin) {
+    console.log("Access denied. Admins only.");
     return <Navigate to="/" replace />;
   }
 

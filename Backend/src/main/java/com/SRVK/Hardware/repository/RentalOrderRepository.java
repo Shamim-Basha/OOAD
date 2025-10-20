@@ -37,4 +37,6 @@ public interface RentalOrderRepository extends JpaRepository<RentalOrder, Long> 
                                                 @Param("startDate") LocalDate startDate,
                                                 @Param("endDate") LocalDate endDate,
                                                 @Param("excludeRentalId") Long excludeRentalId);
+    
+    List<RentalOrder> findByOrderId(Long orderId);
 }

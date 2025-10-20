@@ -1,11 +1,7 @@
 package com.SRVK.Hardware.service;
 
-import com.SRVK.Hardware.dto.CartKeyProduct;
-import com.SRVK.Hardware.dto.CartKeyRental;
 import com.SRVK.Hardware.dto.CheckoutRequestDTO;
 import com.SRVK.Hardware.dto.OrderResponseDTO;
-import com.SRVK.Hardware.dto.OrderItemDTO;
-import com.SRVK.Hardware.dto.RentalOrderDTO;
 import com.SRVK.Hardware.entity.*;
 import com.SRVK.Hardware.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +33,9 @@ public class CheckoutService {
     @Transactional
     public OrderResponseDTO checkout(CheckoutRequestDTO request) {
         log.info("Checkout attempt for user {}", request.getUserId());
+        log.info("Selected products: {}", request.getSelectedProducts() != null ? request.getSelectedProducts().size() : 0);
+        log.info("Selected rentals: {}", request.getSelectedRentals() != null ? request.getSelectedRentals().size() : 0);
+        
         User user = userRepository.findById(request.getUserId()).orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         // Validate and compute totals
@@ -44,7 +43,7 @@ public class CheckoutService {
         List<OrderItem> orderItems = new ArrayList<>();
 
         if (request.getSelectedProducts() != null) {
-            for (CartKeyProduct key : request.getSelectedProducts()) {
+            for (CheckoutRequestDTO.Key key : request.getSelectedProducts()) {
                 ProductCart.ProductCartKey id = new ProductCart.ProductCartKey(key.getUserId(), key.getProductId());
                 ProductCart pc = productCartRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Product cart item not found"));
                 Product product = pc.getProduct();
@@ -64,9 +63,9 @@ public class CheckoutService {
 
         List<RentalOrder> rentalOrders = new ArrayList<>();
         if (request.getSelectedRentals() != null) {
-            for (CartKeyRental key : request.getSelectedRentals()) {
-                // Create composite key using toolId
-                RentalCart.RentalCartKey id = new RentalCart.RentalCartKey(key.getUserId(), key.getToolId());
+            for (CheckoutRequestDTO.Key key : request.getSelectedRentals()) {
+                // Create composite key using toolId (rentalId in the key is actually toolId)
+                RentalCart.RentalCartKey id = new RentalCart.RentalCartKey(key.getUserId(), key.getRentalId());
                 RentalCart rc = rentalCartRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Rental cart item not found"));
                 
                 // Get the tool directly from the rental cart relationship
@@ -102,9 +101,9 @@ public class CheckoutService {
             }
         }
 
-        // Adjust stock
+        // Adjust stock BEFORE payment - will be rolled back if payment fails
         if (request.getSelectedProducts() != null) {
-            for (CartKeyProduct key : request.getSelectedProducts()) {
+            for (CheckoutRequestDTO.Key key : request.getSelectedProducts()) {
                 Product product = productRepository.findById(key.getProductId()).orElseThrow();
                 ProductCart pc = productCartRepository.findById(new ProductCart.ProductCartKey(key.getUserId(), key.getProductId())).orElseThrow();
                 product.setQuantity(product.getQuantity() - pc.getQuantity());
@@ -112,8 +111,8 @@ public class CheckoutService {
             }
         }
         if (request.getSelectedRentals() != null) {
-            for (CartKeyRental key : request.getSelectedRentals()) {
-                RentalCart rc = rentalCartRepository.findById(new RentalCart.RentalCartKey(key.getUserId(), key.getToolId())).orElseThrow();
+            for (CheckoutRequestDTO.Key key : request.getSelectedRentals()) {
+                RentalCart rc = rentalCartRepository.findById(new RentalCart.RentalCartKey(key.getUserId(), key.getRentalId())).orElseThrow();
                 Tool tool = rc.getTool();
                 tool.setStockQuantity(tool.getStockQuantity() - rc.getQuantity());
                 toolRepository.save(tool);
@@ -143,50 +142,82 @@ public class CheckoutService {
         // Update order with payment information
         order.setPaymentAmount(total);
         order.setPaymentMethod(request.getPaymentMethod());
-        order.setPaymentStatus(Order.PAYMENT_STATUS_SUCCESS);
+        
+        // For Cash on Delivery, mark as COD (not paid yet)
+        if ("CASH".equals(request.getPaymentMethod())) {
+            order.setPaymentStatus("COD");
+            order.setStatus(Order.STATUS_CREATED);
+        } else {
+            order.setPaymentStatus(Order.PAYMENT_STATUS_SUCCESS);
+            order.setStatus(Order.STATUS_PAID);
+            order.setPaymentDate(LocalDateTime.now());
+        }
+        
         // order.setTransactionId(result.getTransactionId());
-        order.setPaymentDate(LocalDateTime.now());
         order.setUpdatedAt(LocalDateTime.now());
-        order.setStatus(Order.STATUS_PAID);
+        
+        // Determine order type
+        boolean hasProducts = !orderItems.isEmpty();
+        boolean hasRentals = !rentalOrders.isEmpty();
+        if (hasProducts && hasRentals) {
+            order.setOrderType("MIXED");
+        } else if (hasRentals) {
+            order.setOrderType("RENTAL");
+        } else {
+            order.setOrderType("PRODUCT");
+        }
         
         orderRepository.save(order);
 
-        // Save all rental records now that payment is confirmed
+        // Save all rental records now that payment is confirmed and link them to the order
         if (!rentalOrders.isEmpty()) {
             // We're not using a batch save here to ensure each rental order gets its own ID
             for (RentalOrder rentalOrder : rentalOrders) {
+                rentalOrder.setOrderId(order.getId()); // Link to the main order
                 RentalOrder savedRentalOrder = rentalOrderRepository.save(rentalOrder);
                 log.info("Created rental order record: {}", savedRentalOrder);
             }
         }
 
-        // Clear carts
+        // Clear carts after successful payment
         if (request.getSelectedProducts() != null) {
-            for (CartKeyProduct key : request.getSelectedProducts()) {
+            log.info("Clearing {} selected product(s) from cart", request.getSelectedProducts().size());
+            for (CheckoutRequestDTO.Key key : request.getSelectedProducts()) {
+                log.info("Deleting product cart item: userId={}, productId={}", key.getUserId(), key.getProductId());
                 productCartRepository.deleteByIdUserIdAndIdProductId(key.getUserId(), key.getProductId());
             }
+        } else {
+            log.info("No products to clear from cart");
         }
         if (request.getSelectedRentals() != null) {
-            for (CartKeyRental key : request.getSelectedRentals()) {
-                rentalCartRepository.deleteByIdUserIdAndIdToolId(key.getUserId(), key.getToolId());
+            log.info("Clearing {} selected rental(s) from cart", request.getSelectedRentals().size());
+            for (CheckoutRequestDTO.Key key : request.getSelectedRentals()) {
+                log.info("Deleting rental cart item: userId={}, toolId={}", key.getUserId(), key.getRentalId());
+                rentalCartRepository.deleteByIdUserIdAndIdToolId(key.getUserId(), key.getRentalId());
             }
+        } else {
+            log.info("No rentals to clear from cart");
         }
 
-        // Create response DTO
-        List<OrderItemDTO> productItems = new ArrayList<>();
-        List<RentalOrderDTO> rentalItems = new ArrayList<>();
+        // Create response DTO with combined items list
+        List<OrderResponseDTO.Item> items = new ArrayList<>();
         
+        // Add product items
         for (OrderItem oi : orderItems) {
-            // All OrderItems are for products now
-            productItems.add(OrderItemDTO.builder()
+            items.add(OrderResponseDTO.Item.builder()
+                .type("PRODUCT")
                 .productId(oi.getProduct().getId())
+                .rentalId(null)
+                .name(oi.getProduct().getName())
                 .quantity(oi.getQuantity())
                 .unitPrice(oi.getUnitPrice())
                 .subtotal(oi.getSubtotal())
+                .rentalStart(null)
+                .rentalEnd(null)
                 .build());
         }
         
-        // Create RentalOrderDTO objects for the separate rental order items
+        // Add rental items
         for (RentalOrder savedRental : rentalOrders) {
             // Get tool information for the DTO
             Tool tool = toolRepository.findById(savedRental.getToolId())
@@ -206,9 +237,12 @@ public class CheckoutService {
         
         return OrderResponseDTO.builder()
             .orderId(order.getId())
-            .totalAmount(total)
-            .orderItems(productItems)
-            .rentalOrders(rentalItems)
+            .total(total)
+            .items(items)
+            .paymentStatus(order.getPaymentStatus())
+            .transactionId(order.getTransactionId())
+            .paymentMethod(order.getPaymentMethod())
+            .orderDate(order.getCreatedAt())
             .build();
     }
 }
