@@ -159,12 +159,17 @@ public class CheckoutService {
         // Determine order type
         boolean hasProducts = !orderItems.isEmpty();
         boolean hasRentals = !rentalOrders.isEmpty();
-        if (hasProducts && hasRentals) {
-            order.setOrderType("MIXED");
-        } else if (hasRentals) {
-            order.setOrderType("RENTAL");
-        } else {
-            order.setOrderType("PRODUCT");
+        try {
+            if (hasProducts && hasRentals) {
+                order.setOrderType("MIXED");
+            } else if (hasRentals) {
+                order.setOrderType("RENTAL");
+            } else {
+                order.setOrderType("PRODUCT");
+            }
+        } catch (Exception e) {
+            log.warn("Could not set order type (column may not exist yet): {}", e.getMessage());
+            // Continue without setting order type if column doesn't exist
         }
         
         orderRepository.save(order);
@@ -219,19 +224,17 @@ public class CheckoutService {
         
         // Add rental items
         for (RentalOrder savedRental : rentalOrders) {
-            // Get tool information for the DTO
-            Tool tool = toolRepository.findById(savedRental.getToolId())
-                .orElseThrow(() -> new RuntimeException("Tool not found: " + savedRental.getToolId()));
-            
-            rentalItems.add(RentalOrderDTO.builder()
-                .rentalOrderId(savedRental.getId())
-                .toolId(savedRental.getToolId())
+            Tool tool = toolRepository.findById(savedRental.getToolId()).orElse(null);
+            items.add(OrderResponseDTO.Item.builder()
+                .type("RENTAL")
+                .productId(null)
+                .rentalId(savedRental.getId())
+                .name(tool != null ? tool.getName() : "Unknown Tool")
                 .quantity(savedRental.getQuantity())
-                .rentalStart(savedRental.getStartDate())
-                .rentalEnd(savedRental.getEndDate())
-                .totalCost(savedRental.getTotalCost())
-                .status("ACTIVE")
-                .toolName(tool.getName())
+                .unitPrice(tool != null ? tool.getDailyRate() : BigDecimal.ZERO)
+                .subtotal(savedRental.getTotalCost())
+                .rentalStart(savedRental.getStartDate().atStartOfDay())
+                .rentalEnd(savedRental.getEndDate().atStartOfDay())
                 .build());
         }
         
