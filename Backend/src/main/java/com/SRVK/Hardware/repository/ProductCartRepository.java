@@ -4,6 +4,7 @@ import com.SRVK.Hardware.entity.ProductCart;
 import com.SRVK.Hardware.entity.ProductCart.ProductCartKey;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -25,6 +26,7 @@ public interface ProductCartRepository extends JpaRepository<ProductCart, Produc
      * @param userId the user ID
      * @param productId the product ID
      */
+    @Transactional
     void deleteByIdUserIdAndIdProductId(Long userId, Long productId);
 }
 

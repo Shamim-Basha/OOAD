@@ -20,6 +20,8 @@ import UserManagement from './pages/Admin/UserManagement';
 import ProductManagement from './pages/Admin/ProductManagement';
 import ToolManagement from './pages/Admin/ToolManagement';
 import RentalManagement from './pages/Admin/RentalManagement';
+import OrderManagement from './pages/Admin/OrderManagement';
+
 import Contact from './pages/Contact';
 
 
@@ -46,7 +48,6 @@ function AppContent() {
           <Route path="/login" element={<Login />} />
           <Route path="/profile" element={<UserProfile/>}/>
           
-          {/* Protected Admin Routes */}
           <Route 
             path="/admin" 
             element={
@@ -84,6 +85,14 @@ function AppContent() {
             element={
               <AdminRoute>
                 <RentalManagement />
+              </AdminRoute>
+            } 
+          />
+          <Route 
+            path="/admin/orders" 
+            element={
+              <AdminRoute>
+                <OrderManagement />
               </AdminRoute>
             } 
           />
