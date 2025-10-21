@@ -119,12 +119,20 @@ public class CheckoutService {
             }
         }
 
-        // Create order
+        // Create order with user's address
+        String deliveryAddress = user.getAddress();
+        if (deliveryAddress == null || deliveryAddress.trim().isEmpty()) {
+            // If address is empty, use city and postal code
+            deliveryAddress = (user.getCity() != null ? user.getCity() : "") + 
+                            (user.getPostalCode() != null ? ", " + user.getPostalCode() : "");
+        }
+        
         Order order = Order.builder()
                 .user(user)
                 .totalAmount(total)
                 .status(Order.STATUS_CREATED)
                 .createdAt(LocalDateTime.now())
+                .deliveryAddress(deliveryAddress.trim().isEmpty() ? "Not provided" : deliveryAddress)
                 .build();
         order = orderRepository.save(order);
 

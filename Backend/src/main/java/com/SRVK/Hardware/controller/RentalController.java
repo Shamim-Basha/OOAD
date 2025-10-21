@@ -6,6 +6,7 @@ import com.SRVK.Hardware.entity.RentalOrder;
 import com.SRVK.Hardware.service.RentalService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,6 +16,7 @@ import java.util.List;
 @RequestMapping("/api/rentals")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "http://localhost:3000")
+@Slf4j
 public class RentalController {
 
     private final RentalService rentalService;
@@ -56,7 +58,13 @@ public class RentalController {
 
     @PutMapping("/{id}")
     public ResponseEntity<RentalOrder> update(@PathVariable Long id, @Valid @RequestBody UpdateRentalRequest request) {
-        RentalOrder rental = rentalService.updateDates(id, request.getStartDate(), request.getEndDate());
+        log.info("Received update request for rental ID: {}", id);
+        log.info("Update data - startDate: {}, endDate: {}, status: {}", 
+            request.getStartDate(), request.getEndDate(), request.getStatus());
+        
+        RentalOrder rental = rentalService.updateRental(id, request.getStartDate(), request.getEndDate(), request.getStatus());
+        
+        log.info("Updated rental - ID: {}, Status: {}", rental.getId(), rental.getStatus());
         return ResponseEntity.ok(rental);
     }
 

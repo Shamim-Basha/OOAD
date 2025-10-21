@@ -19,6 +19,9 @@ const OrderManagement = () => {
     userName: '',
     orderType: '' // PRODUCT, RENTAL, MIXED
   });
+  
+  // Sorting state
+  const [sortOrder, setSortOrder] = useState('desc'); // 'asc' or 'desc'
 
   useEffect(() => {
     fetchOrders();
@@ -137,6 +140,10 @@ const OrderManagement = () => {
     setFilters({ status: '', userName: '', orderType: '' });
   };
   
+  const toggleSortOrder = () => {
+    setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc');
+  };
+  
   const filteredOrders = orders.filter(order => {
     const matchesStatus = !filters.status || order.deliveryStatus === filters.status;
     const matchesUser = !filters.userName || 
@@ -157,6 +164,11 @@ const OrderManagement = () => {
     const matchesOrderType = !filters.orderType || orderType === filters.orderType;
     
     return matchesStatus && matchesUser && matchesOrderType;
+  }).sort((a, b) => {
+    // Sort by order date
+    const dateA = new Date(a.orderDate);
+    const dateB = new Date(b.orderDate);
+    return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
   });
 
   return (
@@ -206,6 +218,9 @@ const OrderManagement = () => {
           </div>
           <button className="clear-filters-btn" onClick={handleClearFilters}>
             Clear Filters
+          </button>
+          <button className="sort-btn" onClick={toggleSortOrder}>
+            Sort by Date {sortOrder === 'desc' ? '↓' : '↑'}
           </button>
         </div>
 

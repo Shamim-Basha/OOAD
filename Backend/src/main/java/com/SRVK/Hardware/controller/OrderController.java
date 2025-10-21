@@ -96,12 +96,12 @@ public class OrderController {
     // ==================== ADMIN ENDPOINTS ====================
     
     /**
-     * Get all orders (Admin only)
+     * Get all orders (Admin only) - sorted by date descending (newest first)
      */
     @GetMapping("/admin/all")
     public ResponseEntity<?> getAllOrders() {
         try {
-            List<Order> orders = orderRepository.findAll();
+            List<Order> orders = orderRepository.findAllByOrderByCreatedAtDesc();
             List<OrderResponseDTO> dtos = new ArrayList<>();
             
             for (Order order : orders) {
