@@ -34,7 +34,11 @@ public class Tool {
 
     @Column(nullable = false)
     @Builder.Default
-    private Integer stockQuantity = 1;
+    private Integer totalStock = 1;  // Total tools owned (never changes)
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Integer stockQuantity = 1;  // Available for rent (changes with rentals)
 
     @Column(length = 2000)
     private String description;

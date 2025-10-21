@@ -21,7 +21,8 @@ const RentalManagement = () => {
     toolId: '',
     startDate: '',
     endDate: '',
-    quantity: 1
+    quantity: 1,
+    status: 'ACTIVE'
   });
   
   // Filter states
@@ -56,6 +57,12 @@ const RentalManagement = () => {
   };
 
   const getRentalStatus = (rental) => {
+    // Use the actual status from the database if available
+    if (rental.status) {
+      return rental.status.toLowerCase();
+    }
+    
+    // Fallback to date-based calculation if status is not set
     const today = new Date();
     const startDate = new Date(rental.startDate);
     const endDate = new Date(rental.endDate);
@@ -69,9 +76,10 @@ const RentalManagement = () => {
     const statusClasses = {
       active: 'status-badge status-active',
       completed: 'status-badge status-completed',
+      returned: 'status-badge status-completed',
       upcoming: 'status-badge status-upcoming'
     };
-    return <span className={statusClasses[status]}>{status}</span>;
+    return <span className={statusClasses[status]}>{status.toUpperCase()}</span>;
   };
 
   const getUserName = (userId) => {
@@ -111,17 +119,24 @@ const RentalManagement = () => {
     try {
       const updateData = {
         startDate: formData.startDate,
-        endDate: formData.endDate
+        endDate: formData.endDate,
+        status: formData.status
       };
       
-      await axios.put(`http://localhost:8080/api/rentals/${selectedRental.id}`, updateData);
+      console.log('Updating rental with data:', updateData);
+      console.log('Rental ID:', selectedRental.id);
+      
+      const response = await axios.put(`http://localhost:8080/api/rentals/${selectedRental.id}`, updateData);
+      console.log('Update response:', response.data);
+      
       setSuccess('Rental updated successfully!');
       setShowModal(false);
       resetForm();
       fetchData();
     } catch (error) {
       console.error('Error updating rental:', error);
-      setError(error.response?.data?.message || 'Failed to update rental');
+      console.error('Error response:', error.response?.data);
+      setError(error.response?.data?.message || error.response?.data || 'Failed to update rental');
     }
   };
 
@@ -151,7 +166,8 @@ const RentalManagement = () => {
         toolId: rental.toolId.toString(),
         startDate: rental.startDate,
         endDate: rental.endDate,
-        quantity: rental.quantity
+        quantity: rental.quantity,
+        status: rental.status || 'ACTIVE'
       });
     } else if (type === 'create') {
       resetForm();
@@ -164,7 +180,8 @@ const RentalManagement = () => {
       toolId: '',
       startDate: '',
       endDate: '',
-      quantity: 1
+      quantity: 1,
+      status: 'ACTIVE'
     });
   };
 
@@ -248,6 +265,7 @@ const RentalManagement = () => {
             <option value="">All Status</option>
             <option value="upcoming">Upcoming</option>
             <option value="active">Active</option>
+            <option value="returned">Returned</option>
             <option value="completed">Completed</option>
           </select>
         </div>
@@ -418,6 +436,20 @@ const RentalManagement = () => {
                     required
                   />
                 </div>
+
+                {modalType === 'edit' && (
+                  <div className="form-group">
+                    <label>Status</label>
+                    <select
+                      value={formData.status}
+                      onChange={(e) => setFormData({...formData, status: e.target.value})}
+                      required
+                    >
+                      <option value="ACTIVE">Active</option>
+                      <option value="RETURNED">Returned</option>
+                    </select>
+                  </div>
+                )}
 
                 <div className="form-actions">
                   <button type="button" className="btn-cancel" onClick={closeModal}>

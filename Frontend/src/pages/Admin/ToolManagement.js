@@ -8,6 +8,7 @@ const defaultForm = {
   dailyRate: '',
   category: '',
   available: true,
+  totalStock: 1,
   stockQuantity: 1,
   description: '',
   image: ''
@@ -81,17 +82,33 @@ const ToolManagement = () => {
     try {
       const method = editTool ? 'put' : 'post';
       const url = editTool ? `http://localhost:8080/api/tools/${editTool.id}` : 'http://localhost:8080/api/tools';
-      await axios({
+      
+      // Prepare data - ensure numeric fields are numbers
+      const toolData = {
+        ...form,
+        dailyRate: parseFloat(form.dailyRate) || 0,
+        totalStock: parseInt(form.totalStock) || 1,
+        stockQuantity: parseInt(form.stockQuantity) || 1,
+        available: form.available === true || form.available === 'true'
+      };
+      
+      console.log('Submitting tool data:', toolData);
+      
+      const response = await axios({
         method,
         url,
-        data: form,
+        data: toolData,
         headers: { 'Content-Type': 'application/json' },
       });
+      
+      console.log('Response:', response.data);
       setMessage(editTool ? 'Tool updated.' : 'Tool added.');
       fetchTools();
       closeForm();
-    } catch {
-      setMessage('Error saving tool.');
+    } catch (error) {
+      console.error('Error saving tool:', error);
+      console.error('Error response:', error.response?.data);
+      setMessage(error.response?.data || 'Error saving tool.');
     }
   };
 
@@ -121,7 +138,7 @@ const ToolManagement = () => {
         <table className="tool-table">
           <thead>
             <tr>
-              <th>Image</th><th>Name</th><th>Category</th><th>Daily Rate</th><th>Stock</th><th>Available</th><th>Actions</th>
+              <th>Image</th><th>Name</th><th>Category</th><th>Daily Rate</th><th>Total Stock</th><th>Available Qty</th><th>Status</th><th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -137,7 +154,12 @@ const ToolManagement = () => {
                 <td>{t.name}</td>
                 <td>{t.category}</td>
                 <td>Rs. {t.dailyRate?.toLocaleString() || '0'}</td>
-                <td>{t.stockQuantity || 0}</td>
+                <td><strong>{t.totalStock || t.stockQuantity || 0}</strong></td>
+                <td>
+                  <strong style={{ color: t.stockQuantity > 0 ? '#28a745' : '#dc3545' }}>
+                    {t.stockQuantity || 0}
+                  </strong>
+                </td>
                 <td>
                   <span className={`status-badge ${t.available ? 'available' : 'unavailable'}`}>
                     {t.available ? 'Available' : 'Unavailable'}
@@ -167,7 +189,18 @@ const ToolManagement = () => {
                 <option value="Safety Equipment">Safety Equipment</option>
               </select>
               <input name="dailyRate" placeholder="Daily Rate (Rs.)" value={form.dailyRate} onChange={handleFormChange} type="number" min="0" step="0.01" required />
-              <input name="stockQuantity" placeholder="Stock Quantity" value={form.stockQuantity} onChange={handleFormChange} type="number" min="0" required />
+              <input 
+                name="totalStock" 
+                placeholder="Total Stock (Total tools owned)" 
+                value={form.totalStock || form.stockQuantity} 
+                onChange={handleFormChange} 
+                type="number" 
+                min="0" 
+                required 
+              />
+              <div style={{ fontSize: '12px', color: '#6c757d', marginTop: '-8px', marginBottom: '12px' }}>
+                Note: Total Stock is the total number of tools you own. Available quantity will be calculated automatically.
+              </div>
               <div>
                 <label style={{ display: 'block', marginBottom: 6 }}>Image (optional)</label>
                 <input type="file" accept="image/*" onChange={handleImageChange} />
