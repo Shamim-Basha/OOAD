@@ -4,6 +4,8 @@ import { FaStar, FaCalendar, FaClock, FaTruck, FaShieldAlt, FaArrowLeft, FaPhone
 import axios from 'axios';
 import './ServiceDetail.css';
 
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+
 const ServiceDetail = () => {
   const { id } = useParams();
   const [service, setService] = useState(null);
@@ -64,7 +66,7 @@ const ServiceDetail = () => {
     const fetchTool = async () => {
       setLoading(true);
       try {
-        const res = await axios.get(`http://localhost:8080/api/tools/${id}`);
+        const res = await axios.get(`${API_URL}/api/tools/${id}`);
         const t = res.data;
         if (!t) {
           setService(null);
@@ -244,7 +246,7 @@ const ServiceDetail = () => {
       console.log('Sending rental cart add request:', JSON.stringify(payload));
       
       try {
-        const res = await axios.post('http://localhost:8080/api/cart/rental/add', payload);
+        const res = await axios.post(`${API_URL}/api/cart/rental/add`, payload);
         console.log('Rental cart add response:', res.data);
         // Navigate to cart on success; message can be shown in cart if needed
         navigate('/cart');

@@ -3,6 +3,8 @@ import React, { useEffect, useState } from 'react';
 import { convertByteToImage } from '../../utils/imageHelpers';
 import './ToolManagement.css';
 
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+
 const defaultForm = {
   name: '',
   dailyRate: '',
@@ -31,7 +33,7 @@ const ToolManagement = () => {
   const fetchTools = async () => {
     setLoading(true);
     try {
-      const res = await axios.get('http://localhost:8080/api/tools');
+      const res = await axios.get(`${API_URL}/api/tools`);
       setTools(Array.isArray(res.data) ? res.data : (res.data.data || []));
     } catch {
       setTools([]);
@@ -81,7 +83,7 @@ const ToolManagement = () => {
     setMessage('');
     try {
       const method = editTool ? 'put' : 'post';
-      const url = editTool ? `http://localhost:8080/api/tools/${editTool.id}` : 'http://localhost:8080/api/tools';
+      const url = editTool ? `${API_URL}/api/tools/${editTool.id}` : `${API_URL}/api/tools`;
       
       // Prepare data - ensure numeric fields are numbers
       const toolData = {
@@ -115,7 +117,7 @@ const ToolManagement = () => {
   const handleDelete = async id => {
     if (!window.confirm('Delete this tool?')) return;
     try {
-      await axios.delete(`http://localhost:8080/api/tools/${id}`);
+      await axios.delete(`${API_URL}/api/tools/${id}`);
       fetchTools();
     } catch (err) {
       const msg = err?.response?.data || 'Error deleting tool.';

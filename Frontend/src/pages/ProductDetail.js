@@ -5,6 +5,8 @@ import { convertByteToImage } from '../utils/imageHelpers';
 import { FaStar, FaShoppingCart, FaHeart, FaShare, FaTruck, FaShieldAlt, FaArrowLeft } from 'react-icons/fa';
 import './ProductDetail.css';
 
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+
 const ProductDetail = () => {
   const { id } = useParams();
   const [product, setProduct] = useState(null);
@@ -16,7 +18,7 @@ const ProductDetail = () => {
 
    useEffect(() => {
     axios
-      .get(`http://localhost:8080/api/products/${id}`)
+      .get(`${API_URL}/api/products/${id}`)
       .then((res) => {
   const data = res.data;
   const imageSrc = convertByteToImage(data.image, placeholderImage);

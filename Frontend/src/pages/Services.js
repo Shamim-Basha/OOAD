@@ -5,6 +5,8 @@ import axios from 'axios';
 import { convertByteToImage } from '../utils/imageHelpers';
 import './Services.css';
 
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+
 const Services = () => {
   const [services, setServices] = useState([]);
   const [filteredServices, setFilteredServices] = useState([]);
@@ -24,7 +26,7 @@ const Services = () => {
     const fetchTools = async () => {
       setLoading(true);
       try {
-        const res = await axios.get('http://localhost:8080/api/tools');
+        const res = await axios.get(`${API_URL}/api/tools`);
         const tools = res.data || [];
         // Map tools into UI shape
         const mapped = tools.map(t => ({

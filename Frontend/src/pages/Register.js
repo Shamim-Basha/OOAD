@@ -5,6 +5,8 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './Auth.css';
 
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+
 const Register = () => {
   const [formData, setFormData] = useState({
     username: '',
@@ -52,7 +54,7 @@ const Register = () => {
     try {
       const { confirmPassword, ...submitData } = formData;
 
-      const response = await fetch('http://localhost:8080/api/users/register', {
+      const response = await fetch(`${API_URL}/api/users/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(submitData),

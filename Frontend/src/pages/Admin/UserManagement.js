@@ -5,6 +5,8 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './UserManagement.css';
 
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
   const [search, setSearch] = useState('');
@@ -26,7 +28,7 @@ const UserManagement = () => {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const res = await axios.get('http://localhost:8080/api/users');
+      const res = await axios.get(`${API_URL}/api/users`);
       const data = res.data;
       setUsers(Array.isArray(data) ? data : (data.data || []));
     } catch {
@@ -62,7 +64,7 @@ const UserManagement = () => {
     setMessage('');
     try {
       const method = editUser ? 'put' : 'post';
-      const url = editUser ? `http://localhost:8080/api/users/${editUser.id}` : 'http://localhost:8080/api/users/register';
+      const url = editUser ? `${API_URL}/api/users/${editUser.id}` : `${API_URL}/api/users/register`;
       const body = { ...form };
       if (!body.password) delete body.password;
       const res = await axios({
@@ -91,7 +93,7 @@ const UserManagement = () => {
   const handleDelete = async id => {
     if (!window.confirm('Delete this user?')) return;
     try {
-      const res = await axios.delete(`http://localhost:8080/api/users/${id}`);
+      const res = await axios.delete(`${API_URL}/api/users/${id}`);
       const msg = res?.data?.message || 'User deleted';
       await fetchUsers();
       toast.success(msg);
@@ -173,7 +175,7 @@ const UserManagement = () => {
         delete body.password;
       }
       
-      const res = await axios.put(`http://localhost:8080/api/users/${userId}`, body);
+      const res = await axios.put(`${API_URL}/api/users/${userId}`, body);
       const msg = res?.data?.message || 'User updated';
       
       // Exit edit mode and refresh

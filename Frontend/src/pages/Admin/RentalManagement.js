@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './RentalManagement.css';
 
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+
 const RentalManagement = () => {
   const [rentals, setRentals] = useState([]);
   const [users, setUsers] = useState([]);
@@ -40,9 +42,9 @@ const RentalManagement = () => {
     setLoading(true);
     try {
       const [rentalsRes, usersRes, toolsRes] = await Promise.all([
-        axios.get('http://localhost:8080/api/rentals'),
-        axios.get('http://localhost:8080/api/users'),
-        axios.get('http://localhost:8080/api/tools')
+        axios.get(`${API_URL}/api/rentals`),
+        axios.get(`${API_URL}/api/users`),
+        axios.get(`${API_URL}/api/tools`)
       ]);
       
       setRentals(rentalsRes.data);
@@ -103,7 +105,7 @@ const RentalManagement = () => {
         quantity: parseInt(formData.quantity)
       };
       
-      await axios.post('http://localhost:8080/api/rentals', rentalData);
+      await axios.post(`${API_URL}/api/rentals`, rentalData);
       setSuccess('Rental created successfully!');
       setShowModal(false);
       resetForm();
@@ -126,7 +128,7 @@ const RentalManagement = () => {
       console.log('Updating rental with data:', updateData);
       console.log('Rental ID:', selectedRental.id);
       
-      const response = await axios.put(`http://localhost:8080/api/rentals/${selectedRental.id}`, updateData);
+      const response = await axios.put(`${API_URL}/api/rentals/${selectedRental.id}`, updateData);
       console.log('Update response:', response.data);
       
       setSuccess('Rental updated successfully!');
@@ -144,7 +146,7 @@ const RentalManagement = () => {
     if (!window.confirm('Are you sure you want to delete this rental?')) return;
     
     try {
-      await axios.delete(`http://localhost:8080/api/rentals/${id}`);
+      await axios.delete(`${API_URL}/api/rentals/${id}`);
       setSuccess('Rental deleted successfully!');
       fetchData();
     } catch (error) {
