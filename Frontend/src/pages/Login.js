@@ -37,9 +37,9 @@ const Login = () => {
         body: JSON.stringify(formData),
       });
 
-      const data = await response.json();
-
       if (response.ok) {
+        const data = await response.json();
+
         toast.update(toastId, {
           render: 'Login successful!',
           type: 'success',
@@ -64,7 +64,7 @@ const Login = () => {
         }
       } else {
         toast.update(toastId, {
-          render: data.message || 'Invalid username or password',
+          render:'Invalid username or password',
           type: 'error',
           isLoading: false,
           autoClose: 3000,
@@ -79,6 +79,7 @@ const Login = () => {
         autoClose: 3000,
         closeOnClick: true,
       });
+      console.log(error)
     } finally {
       setIsLoading(false);
     }
