@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { FaTrash, FaEdit } from 'react-icons/fa';
+import { FaTrash, FaEdit, FaEye, FaEyeSlash, FaSave, FaTimes } from 'react-icons/fa';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './UserManagement.css';
@@ -15,6 +15,9 @@ const UserManagement = () => {
     firstName: '', lastName: '', email: '', phone: '', address: '', city: '', postalCode: '', role: 'CUSTOMER', username: '', password: ''
   });
   const [message, setMessage] = useState('');
+  const [expandedUsers, setExpandedUsers] = useState(new Set());
+  const [editingUsers, setEditingUsers] = useState(new Set());
+  const [editingForms, setEditingForms] = useState({});
 
   useEffect(() => {
     fetchUsers();
@@ -36,7 +39,10 @@ const UserManagement = () => {
 
   const openForm = (user = null) => {
     setEditUser(user);
-  setForm(user ? { ...user, password: '' } : { firstName: '', lastName: '', email: '', phone: '', address: '', city: '', postalCode: '', role: 'CUSTOMER', username: '', password: '' });
+    setForm(user ? { ...user, password: '' } : { 
+      firstName: '', lastName: '', email: '', phone: '', address: '', 
+      city: '', postalCode: '', role: 'CUSTOMER', username: '', password: '' 
+    });
     setShowForm(true);
     setMessage('');
   };
@@ -50,6 +56,7 @@ const UserManagement = () => {
   const handleFormChange = e => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
+
   const handleSubmit = async e => {
     e.preventDefault();
     setMessage('');
@@ -70,7 +77,6 @@ const UserManagement = () => {
       await fetchUsers();
       closeForm();
     } catch (err) {
-      // Extract meaningful message from axios error when available
       let errMsg = 'Error saving user';
       if (err && err.response && err.response.data) {
         errMsg = err.response.data.message || err.response.data.error || JSON.stringify(err.response.data) || errMsg;
@@ -101,44 +107,81 @@ const UserManagement = () => {
     }
   };
 
-  // details (activity) feature removed
-  const [editingUserId, setEditingUserId] = useState(null);
-  const [editingForm, setEditingForm] = useState({});
+  const toggleUserDetails = (userId) => {
+    const newExpanded = new Set(expandedUsers);
+    if (newExpanded.has(userId)) {
+      newExpanded.delete(userId);
+      // Also exit edit mode when closing details
+      const newEditing = new Set(editingUsers);
+      newEditing.delete(userId);
+      setEditingUsers(newEditing);
+    } else {
+      newExpanded.add(userId);
+    }
+    setExpandedUsers(newExpanded);
+  };
 
-
-
-  // Inline edit support
-  const startInlineEdit = (user) => {
-    setEditingUserId(user.id);
-    setEditingForm({
-      firstName: user.firstName || '',
-      lastName: user.lastName || '',
-      email: user.email || '',
-      username: user.username || '',
-      phone: user.phone || '',
-      address: user.address || '',
-      city: user.city || '',
-      postalCode: user.postalCode || '',
-      role: user.role || 'CUSTOMER'
+  const startEdit = (user) => {
+    const newEditing = new Set(editingUsers);
+    newEditing.add(user.id);
+    setEditingUsers(newEditing);
+    
+    setEditingForms({
+      ...editingForms,
+      [user.id]: {
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        email: user.email || '',
+        username: user.username || '',
+        phone: user.phone || '',
+        address: user.address || '',
+        city: user.city || '',
+        postalCode: user.postalCode || '',
+        role: user.role || 'CUSTOMER',
+        password: '' // For password change
+      }
     });
   };
 
-  const cancelInlineEdit = () => {
-    setEditingUserId(null);
-    setEditingForm({});
+  const cancelEdit = (userId) => {
+    const newEditing = new Set(editingUsers);
+    newEditing.delete(userId);
+    setEditingUsers(newEditing);
+    
+    const newEditingForms = { ...editingForms };
+    delete newEditingForms[userId];
+    setEditingForms(newEditingForms);
   };
 
-  const saveInlineEdit = async (userId) => {
+  const handleEditFormChange = (userId, field, value) => {
+    setEditingForms({
+      ...editingForms,
+      [userId]: {
+        ...editingForms[userId],
+        [field]: value
+      }
+    });
+  };
+
+  const saveEdit = async (userId) => {
     try {
-      const res = await axios.put(`http://localhost:8080/api/users/${userId}`, editingForm);
+      const editForm = editingForms[userId];
+      const body = { ...editForm };
+      
+      // Don't send password if it's empty
+      if (!body.password) {
+        delete body.password;
+      }
+      
+      const res = await axios.put(`http://localhost:8080/api/users/${userId}`, body);
       const msg = res?.data?.message || 'User updated';
-      // refresh list
+      
+      // Exit edit mode and refresh
+      cancelEdit(userId);
       await fetchUsers();
-      setEditingUserId(null);
-      setEditingForm({});
       toast.success(msg);
     } catch (err) {
-      console.error('Failed inline save', err);
+      console.error('Failed to save edit', err);
       let errMsg = 'Failed to update user';
       if (err && err.response && err.response.data) {
         errMsg = err.response.data.message || err.response.data.error || JSON.stringify(err.response.data) || errMsg;
@@ -150,7 +193,7 @@ const UserManagement = () => {
   };
 
   const filtered = users.filter(u =>
-    (u.firstName + ' ' + u.lastName + ' ' + u.email + ' ' + u.username).toLowerCase().includes(search.toLowerCase())
+    (u.firstName + ' ' + u.lastName + ' ' + u.email + ' ' + u.username + ' ' + u.phone + ' ' + u.city).toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -158,7 +201,6 @@ const UserManagement = () => {
       <ToastContainer position="top-right" />
       <div className="user-mgmt-header">
         <h2>User Management</h2>
-      {/* details feature removed */}
         <button className="add-btn" onClick={() => openForm()}>+ Add User</button>
       </div>
       <input className="search-input" placeholder="Search users..." value={search} onChange={handleSearch} />
@@ -166,7 +208,7 @@ const UserManagement = () => {
         <table className="user-table">
           <thead>
             <tr>
-              <th>Name</th>
+              <th>Full Name</th>
               <th>Email</th>
               <th>Username</th>
               <th>Role</th>
@@ -177,50 +219,189 @@ const UserManagement = () => {
             {filtered.map(u => (
               <React.Fragment key={u.id}>
                 <tr>
-                  {editingUserId === u.id ? (
-                    <>
-                      <td style={{ display: 'flex', gap: 8 }}>
-                        <input name="firstName" value={editingForm.firstName} onChange={(e)=>setEditingForm({...editingForm, firstName: e.target.value})} style={{width:120}} />
-                        <input name="lastName" value={editingForm.lastName} onChange={(e)=>setEditingForm({...editingForm, lastName: e.target.value})} style={{width:120}} />
-                      </td>
-                      <td><input name="email" value={editingForm.email} onChange={(e)=>setEditingForm({...editingForm, email: e.target.value})} style={{width:220}} /></td>
-                      <td><input name="username" value={editingForm.username} onChange={(e)=>setEditingForm({...editingForm, username: e.target.value})} style={{width:140}} /></td>
-                      <td>
-                        <select value={editingForm.role} onChange={(e)=>setEditingForm({...editingForm, role: e.target.value})}>
-                          <option value="CUSTOMER">Customer</option>
-                          <option value="ADMIN">Admin</option>
-                          <option value="MANAGER">Manager</option>
-                        </select>
-                      </td>
-                      <td>
-                        <div style={{ display: 'flex', gap: 8 }}>
-                          <button className="save-btn" onClick={()=>saveInlineEdit(u.id)}>Save</button>
-                          <button className="cancel-btn" onClick={cancelInlineEdit}>Cancel</button>
-                        </div>
-                      </td>
-                    </>
-                  ) : (
-                    <>
-                      <td>{u.firstName} {u.lastName}</td>
-                      <td>{u.email}</td>
-                      <td>{u.username}</td>
-                      <td>{u.role}</td>
-                      <td>
-                        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                          <button className="edit-btn" onClick={() => startInlineEdit(u)} title="Edit">
-                            <FaEdit />
-                          </button>
-                          {/* Details feature removed */}
-                          <button className="delete-btn" onClick={() => handleDelete(u.id)} title="Delete">
-                            <FaTrash />
-                          </button>
-                        </div>
-                      </td>
-                    </>
-                  )}
+                  <td>{u.firstName} {u.lastName}</td>
+                  <td>{u.email}</td>
+                  <td>{u.username}</td>
+                  <td>{u.role}</td>
+                  <td>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <button 
+                        className="details-btn" 
+                        onClick={() => toggleUserDetails(u.id)} 
+                        title={expandedUsers.has(u.id) ? "Hide Details" : "Show Details"}
+                      >
+                        {expandedUsers.has(u.id) ? <FaEyeSlash /> : <FaEye />}
+                      </button>
+                      <button className="delete-btn" onClick={() => handleDelete(u.id)} title="Delete">
+                        <FaTrash />
+                      </button>
+                    </div>
+                  </td>
                 </tr>
-
-                {/* details row removed */}
+                
+                {/* Expanded details row */}
+                {expandedUsers.has(u.id) && (
+                  <tr className="details-row">
+                    <td colSpan="6">
+                      <div className="user-details">
+                        <div className="details-header">
+                          <h4>User Details</h4>
+                          {editingUsers.has(u.id) ? (
+                            <div className="edit-actions">
+                              <button className="save-btn" onClick={() => saveEdit(u.id)} title="Save">
+                                <FaSave /> Save
+                              </button>
+                              <button className="cancel-btn" onClick={() => cancelEdit(u.id)} title="Cancel">
+                                <FaTimes /> Cancel
+                              </button>
+                            </div>
+                          ) : (
+                            <button className="edit-btn" onClick={() => startEdit(u)} title="Edit">
+                              <FaEdit /> Edit
+                            </button>
+                          )}
+                        </div>
+                        
+                        <div className="details-grid">
+                          <div className="detail-item">
+                            <label>First Name:</label>
+                            {editingUsers.has(u.id) ? (
+                              <input 
+                                value={editingForms[u.id]?.firstName || ''} 
+                                onChange={(e) => handleEditFormChange(u.id, 'firstName', e.target.value)}
+                                className="detail-input"
+                              />
+                            ) : (
+                              <span>{u.firstName || 'N/A'}</span>
+                            )}
+                          </div>
+                          
+                          <div className="detail-item">
+                            <label>Last Name:</label>
+                            {editingUsers.has(u.id) ? (
+                              <input 
+                                value={editingForms[u.id]?.lastName || ''} 
+                                onChange={(e) => handleEditFormChange(u.id, 'lastName', e.target.value)}
+                                className="detail-input"
+                              />
+                            ) : (
+                              <span>{u.lastName || 'N/A'}</span>
+                            )}
+                          </div>
+                          
+                          <div className="detail-item">
+                            <label>Email:</label>
+                            {editingUsers.has(u.id) ? (
+                              <input 
+                                value={editingForms[u.id]?.email || ''} 
+                                onChange={(e) => handleEditFormChange(u.id, 'email', e.target.value)}
+                                className="detail-input"
+                                type="email"
+                              />
+                            ) : (
+                              <span>{u.email || 'N/A'}</span>
+                            )}
+                          </div>
+                          
+                          <div className="detail-item">
+                            <label>Username:</label>
+                            {editingUsers.has(u.id) ? (
+                              <input 
+                                value={editingForms[u.id]?.username || ''} 
+                                onChange={(e) => handleEditFormChange(u.id, 'username', e.target.value)}
+                                className="detail-input"
+                              />
+                            ) : (
+                              <span>{u.username || 'N/A'}</span>
+                            )}
+                          </div>
+                          
+                          <div className="detail-item">
+                            <label>Phone:</label>
+                            {editingUsers.has(u.id) ? (
+                              <input 
+                                value={editingForms[u.id]?.phone || ''} 
+                                onChange={(e) => handleEditFormChange(u.id, 'phone', e.target.value)}
+                                className="detail-input"
+                              />
+                            ) : (
+                              <span>{u.phone || 'N/A'}</span>
+                            )}
+                          </div>
+                          
+                          <div className="detail-item">
+                            <label>Address:</label>
+                            {editingUsers.has(u.id) ? (
+                              <input 
+                                value={editingForms[u.id]?.address || ''} 
+                                onChange={(e) => handleEditFormChange(u.id, 'address', e.target.value)}
+                                className="detail-input"
+                              />
+                            ) : (
+                              <span>{u.address || 'N/A'}</span>
+                            )}
+                          </div>
+                          
+                          <div className="detail-item">
+                            <label>City:</label>
+                            {editingUsers.has(u.id) ? (
+                              <input 
+                                value={editingForms[u.id]?.city || ''} 
+                                onChange={(e) => handleEditFormChange(u.id, 'city', e.target.value)}
+                                className="detail-input"
+                              />
+                            ) : (
+                              <span>{u.city || 'N/A'}</span>
+                            )}
+                          </div>
+                          
+                          <div className="detail-item">
+                            <label>Postal Code:</label>
+                            {editingUsers.has(u.id) ? (
+                              <input 
+                                value={editingForms[u.id]?.postalCode || ''} 
+                                onChange={(e) => handleEditFormChange(u.id, 'postalCode', e.target.value)}
+                                className="detail-input"
+                              />
+                            ) : (
+                              <span>{u.postalCode || 'N/A'}</span>
+                            )}
+                          </div>
+                          
+                          <div className="detail-item">
+                            <label>Role:</label>
+                            {editingUsers.has(u.id) ? (
+                              <select 
+                                value={editingForms[u.id]?.role || 'CUSTOMER'} 
+                                onChange={(e) => handleEditFormChange(u.id, 'role', e.target.value)}
+                                className="detail-input"
+                              >
+                                <option value="CUSTOMER">Customer</option>
+                                <option value="ADMIN">Admin</option>
+                                <option value="MANAGER">Manager</option>
+                              </select>
+                            ) : (
+                              <span>{u.role || 'N/A'}</span>
+                            )}
+                          </div>
+                          
+                          {editingUsers.has(u.id) && (
+                            <div className="detail-item full-width">
+                              <label>New Password (leave blank to keep current):</label>
+                              <input 
+                                value={editingForms[u.id]?.password || ''} 
+                                onChange={(e) => handleEditFormChange(u.id, 'password', e.target.value)}
+                                className="detail-input"
+                                type="password"
+                                placeholder="Enter new password"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                )}
               </React.Fragment>
             ))}
           </tbody>
