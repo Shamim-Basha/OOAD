@@ -61,9 +61,6 @@ const AdminSidebar = () => {
               Orders & Delivery
             </li>
           </Link>
-          <li>
-            Sales Reports
-          </li>
           <li
               className="sidebar-logout-btn"
               onClick={handleLogout}>
