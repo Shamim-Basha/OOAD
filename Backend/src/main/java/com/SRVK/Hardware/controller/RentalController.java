@@ -15,7 +15,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/rentals")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "*")
 @Slf4j
 public class RentalController {
 

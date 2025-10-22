@@ -272,9 +272,6 @@ const Cart = () => {
         rentals: rentals
       });
       
-      // Show success message but stay on cart page
-      alert(`✅ Order placed successfully!\n\nOrder ID: ${data.orderId}\n\n✔️ Checked items were removed from cart\n✔️ Unchecked items remain in your cart`);
-      
       // Optional: Navigate to user profile after user sees remaining cart
       // navigate('/user-profile', { state: { orderSuccess: true, orderId: data.orderId } });
     } catch (err) {
