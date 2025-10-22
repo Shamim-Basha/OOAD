@@ -1,9 +1,6 @@
 [build]
-builder = "nixpacks"
-buildCommand = "./mvnw clean package -DskipTests"
-
-[deploy]
-startCommand = "java -jar target/*.jar"
+builder = "dockerfile"
+dockerfilePath = "Dockerfile"
 
 [env]
 JAVA_TOOL_OPTIONS = "-Xmx512m"
