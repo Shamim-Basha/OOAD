@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+
 const UserProfile = () => {
   const [user, setUser] = useState(null);
   const [editMode, setEditMode] = useState(false);
@@ -18,7 +20,7 @@ const UserProfile = () => {
       navigate('/login');
       return;
     }
-    fetch(`http://localhost:8080/api/users/${userId}`)
+    fetch(`${API_URL}/api/users/${userId}`)
       .then(res => res.json())
       .then(data => {
         setUser(data.data || data);
@@ -45,7 +47,7 @@ const UserProfile = () => {
   const handleSave = async e => {
     e.preventDefault();
     try {
-      const res = await fetch(`http://localhost:8080/api/users/${userId}`, {
+      const res = await fetch(`${API_URL}/api/users/${userId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),

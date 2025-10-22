@@ -5,6 +5,8 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './Auth.css';
 
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+
 const Login = () => {
   const [formData, setFormData] = useState({
     username: '',
@@ -29,7 +31,7 @@ const Login = () => {
     const toastId = toast.loading('Signing in...');
 
     try {
-      const response = await fetch('http://localhost:8080/api/users/login', {
+      const response = await fetch(`${API_URL}/api/users/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -6,6 +6,8 @@ import './Products.css';
 import axios from 'axios';
 import { convertByteToImage } from '../utils/imageHelpers';
 
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+
 const Products = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState([]);
@@ -38,7 +40,7 @@ const Products = () => {
 
   useEffect(() => {
     
-    axios.get("http://localhost:8080/api/products")
+    axios.get(`${API_URL}/api/products`)
       .then((res) => {
         const prods = (res.data || []).map(p => {
           const product = {
@@ -122,7 +124,7 @@ const Products = () => {
         quantity: 1
       };
       
-      const res = await axios.post("http://localhost:8080/api/cart/product/add", payload);
+      const res = await axios.post(`${API_URL}/api/cart/product/add`, payload);
       // alert('Item added to cart successfully!');
       console.log('Cart response:', res.data);
       navigate('/cart');
