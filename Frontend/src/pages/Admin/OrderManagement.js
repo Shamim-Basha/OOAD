@@ -4,6 +4,8 @@ import AdminSidebar from '../../components/AdminSidebar';
 import { FaTimes, FaCheck } from 'react-icons/fa';
 import './OrderManagement.css';
 
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+
 const OrderManagement = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -30,7 +32,7 @@ const OrderManagement = () => {
   const fetchOrders = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('http://localhost:8080/api/orders/admin/all');
+      const response = await axios.get(`${API_URL}/api/orders/admin/all`);
       setOrders(response.data);
     } catch (error) {
       console.error('Error fetching orders:', error);
@@ -41,7 +43,7 @@ const OrderManagement = () => {
 
   const handleViewDetails = async (orderId) => {
     try {
-      const response = await axios.get(`http://localhost:8080/api/orders/admin/${orderId}`);
+      const response = await axios.get(`${API_URL}/api/orders/admin/${orderId}`);
       setSelectedOrder(response.data);
       setShowDetailsModal(true);
     } catch (error) {
@@ -59,7 +61,7 @@ const OrderManagement = () => {
 
   const handleSaveStatus = async () => {
     try {
-      await axios.put(`http://localhost:8080/api/orders/admin/${selectedOrder.orderId}/delivery-status`, {
+      await axios.put(`${API_URL}/api/orders/admin/${selectedOrder.orderId}/delivery-status`, {
         deliveryStatus: deliveryStatus,
         deliveryAddress: deliveryAddress
       });
@@ -78,7 +80,7 @@ const OrderManagement = () => {
     }
 
     try {
-      await axios.delete(`http://localhost:8080/api/orders/admin/${orderId}`);
+      await axios.delete(`${API_URL}/api/orders/admin/${orderId}`);
       alert('Order deleted successfully!');
       fetchOrders();
     } catch (error) {
@@ -114,7 +116,7 @@ const OrderManagement = () => {
     }
 
     try {
-      await axios.put(`http://localhost:8080/api/orders/admin/${orderId}/payment-status`);
+      await axios.put(`${API_URL}/api/orders/admin/${orderId}/payment-status`);
       alert('Payment status updated to PAID!');
       fetchOrders();
       if (showDetailsModal && selectedOrder?.orderId === orderId) {

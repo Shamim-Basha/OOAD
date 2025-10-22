@@ -5,6 +5,8 @@ import AdminSidebar from '../../components/AdminSidebar';
 import DashboardCharts from './DashboardCharts'; 
 import './AdminDashboard.css';
 
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+
 const DashboardCards = ({ stats }) => {
   const navigate = useNavigate();
   return (
@@ -65,21 +67,21 @@ const AdminDashboard = () => {
       setLoading(true);
       try {
         // Fetch users count
-        const usersRes = await axios.get('http://localhost:8080/api/users');
+        const usersRes = await axios.get(`${API_URL}/api/users`);
         const usersData = usersRes.data;
         const usersCount = Array.isArray(usersData) ? usersData.length : (usersData.data ? usersData.data.length : 0);
 
         // Fetch products count
         let productsCount = 0;
         try {
-          const productsRes = await axios.get('http://localhost:8080/api/products');
+          const productsRes = await axios.get(`${API_URL}/api/products`);
           const productsData = productsRes.data;
           productsCount = Array.isArray(productsData) ? productsData.length : (productsData.data ? productsData.data.length : 0);
         } catch {}
 
         let salesToday = 0;
         try {
-          const salesRes = await axios.get('http://localhost:8080/api/sales/today');
+          const salesRes = await axios.get(`${API_URL}/api/sales/today`);
           const salesData = salesRes.data;
           salesToday = salesData.total || 0;
         } catch {}
@@ -87,7 +89,7 @@ const AdminDashboard = () => {
         // Fetch tools count
         let toolsCount = 0;
         try {
-          const toolsRes = await axios.get('http://localhost:8080/api/tools');
+          const toolsRes = await axios.get(`${API_URL}/api/tools`);
           const toolsData = toolsRes.data;
           toolsCount = Array.isArray(toolsData) ? toolsData.length : (toolsData.data ? toolsData.data.length : 0);
         } catch {}
@@ -95,7 +97,7 @@ const AdminDashboard = () => {
         // Fetch rentals count
         let rentalsCount = 0;
         try {
-          const rentalsRes = await axios.get('http://localhost:8080/api/rentals');
+          const rentalsRes = await axios.get(`${API_URL}/api/rentals`);
           const rentalsData = rentalsRes.data;
           rentalsCount = Array.isArray(rentalsData) ? rentalsData.length : (rentalsData.data ? rentalsData.data.length : 0);
         } catch {}
@@ -103,7 +105,7 @@ const AdminDashboard = () => {
         // Fetch orders count
         let ordersCount = 0;
         try {
-          const ordersRes = await axios.get('http://localhost:8080/api/orders/admin/all');
+          const ordersRes = await axios.get(`${API_URL}/api/orders/admin/all`);
           const ordersData = ordersRes.data;
           ordersCount = Array.isArray(ordersData) ? ordersData.length : 0;
         } catch {}

@@ -2,6 +2,8 @@ import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import './ProductManagement.css';
 
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+
 const defaultForm = {
   name: '',
   category: '',
@@ -28,7 +30,7 @@ const ProductManagement = () => {
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const res = await axios.get('http://localhost:8080/api/products');
+      const res = await axios.get(`${API_URL}/api/products`);
       setProducts(Array.isArray(res.data) ? res.data : (res.data.data || []));
     } catch (err) {
       console.error('Error fetching products:', err);
@@ -81,8 +83,8 @@ const ProductManagement = () => {
     try {
       const method = editProduct ? 'put' : 'post';
       const url = editProduct
-        ? `http://localhost:8080/api/products/${editProduct.id}`
-        : 'http://localhost:8080/api/products';
+        ? `${API_URL}/api/products/${editProduct.id}`
+        : `${API_URL}/api/products`;
 
       const res = await axios({
         method,
@@ -104,7 +106,7 @@ const ProductManagement = () => {
   const handleDelete = async id => {
     if (!window.confirm('Delete this product?')) return;
     try {
-      await axios.delete(`http://localhost:8080/api/products/${id}`);
+      await axios.delete(`${API_URL}/api/products/${id}`);
       fetchProducts();
     } catch (err) {
       console.error('Error deleting product:', err);
