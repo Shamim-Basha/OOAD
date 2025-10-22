@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import axios from "axios";
 
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+
 function RentalForm() {
   const [userId, setUserId] = useState("");
   const [toolId, setToolId] = useState("");
@@ -19,7 +21,7 @@ function RentalForm() {
     };
 
     try {
-      const response = await axios.post("http://localhost:8080/api/rentals", rentalData);
+      const response = await axios.post(`${API_URL}/api/rentals`, rentalData);
       alert("Rental created! Total cost: " + response.data.totalCost);
       // Reset form
       setUserId("");
