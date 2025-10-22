@@ -50,7 +50,7 @@ public class RentalCart {
     @Column(name = "total_cost")
     private BigDecimal totalCost;
 
-    @Column(name = "added_at", nullable = false)
+    @Column(name = "added_at", nullable = false, columnDefinition = "datetime")
     private LocalDateTime addedAt;
 }
 

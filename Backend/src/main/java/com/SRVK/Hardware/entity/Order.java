@@ -65,10 +65,10 @@ public class Order {
     @Column(name = "status", nullable = false)
     private String status;
 
-    @Column(name = "created_at", nullable = false)
+    @Column(name = "created_at", nullable = false, columnDefinition = "datetime")
     private LocalDateTime createdAt;
     
-    @Column(name = "updated_at")
+    @Column(name = "updated_at", columnDefinition = "datetime")
     private LocalDateTime updatedAt;
     
     /**
@@ -92,7 +92,7 @@ public class Order {
     @Column(name = "transaction_id")
     private String transactionId;
     
-    @Column(name = "payment_date")
+    @Column(name = "payment_date", columnDefinition = "datetime")
     private LocalDateTime paymentDate;
     
     /**
@@ -105,7 +105,7 @@ public class Order {
     @Column(name = "delivery_address")
     private String deliveryAddress;
     
-    @Column(name = "delivered_at")
+    @Column(name = "delivered_at", columnDefinition = "datetime")
     private LocalDateTime deliveredAt;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
