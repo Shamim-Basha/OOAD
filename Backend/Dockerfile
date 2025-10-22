@@ -3,22 +3,22 @@
 # =============================
 FROM eclipse-temurin:24-jdk AS build
 
-# Set working directory
 WORKDIR /app
 
-# Copy Maven wrapper and project files
+# Copy Maven wrapper and project files first
 COPY .mvn/ .mvn/
 COPY mvnw pom.xml ./
 
-# Make mvnw executable (important if pushed from Windows)
+# ✅ Force permission change explicitly before use
 RUN chmod +x mvnw
 
-# Download dependencies (cache layer)
-RUN ./mvnw dependency:go-offline -B
+# Pre-fetch dependencies (for cache)
+RUN ./mvnw dependency:go-offline -B || mvn dependency:go-offline -B
 
-# Copy source and build the jar
+# Copy source and build
 COPY src ./src
-RUN ./mvnw clean package -DskipTests
+RUN ./mvnw clean package -DskipTests || mvn clean package -DskipTests
+
 
 # =============================
 # 2️⃣ Runtime Stage
