@@ -1,5 +1,5 @@
 [build]
-builder = "maven"  # or "gradle"
+builder = "Railpack"
 buildCommand = "./mvnw clean package -DskipTests"
 
 [deploy]
