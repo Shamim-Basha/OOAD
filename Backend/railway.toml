@@ -1,5 +1,5 @@
 [build]
-builder = "Railpack"
+builder = "nixpacks"
 buildCommand = "./mvnw clean package -DskipTests"
 
 [deploy]
