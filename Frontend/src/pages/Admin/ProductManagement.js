@@ -2,6 +2,8 @@ import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import './ProductManagement.css';
 
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+
 const defaultForm = {
   name: '',
   category: '',
@@ -28,11 +30,13 @@ const ProductManagement = () => {
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const res = await axios.get('http://localhost:8080/api/products');
+      const res = await axios.get(`${API_URL}/api/products`);
       setProducts(Array.isArray(res.data) ? res.data : (res.data.data || []));
     } catch (err) {
       console.error('Error fetching products:', err);
       setProducts([]);
+      const errorMsg = err.response?.data?.message || err.response?.data?.error || err.message || 'Error fetching products';
+      setMessage(typeof errorMsg === 'string' ? errorMsg : 'Error fetching products');
     }
     setLoading(false);
   };
@@ -81,8 +85,8 @@ const ProductManagement = () => {
     try {
       const method = editProduct ? 'put' : 'post';
       const url = editProduct
-        ? `http://localhost:8080/api/products/${editProduct.id}`
-        : 'http://localhost:8080/api/products';
+        ? `${API_URL}/api/products/${editProduct.id}`
+        : `${API_URL}/api/products`;
 
       const res = await axios({
         method,
@@ -97,17 +101,21 @@ const ProductManagement = () => {
       closeForm();
     } catch (err) {
       console.error('Error saving product:', err);
-      setMessage('Error saving product.');
+      const errorMsg = err.response?.data?.message || err.response?.data?.error || err.message || 'Error saving product.';
+      setMessage(typeof errorMsg === 'string' ? errorMsg : 'Error saving product.');
     }
   };
 
   const handleDelete = async id => {
     if (!window.confirm('Delete this product?')) return;
     try {
-      await axios.delete(`http://localhost:8080/api/products/${id}`);
+      await axios.delete(`${API_URL}/api/products/${id}`);
+      setMessage('Product deleted successfully');
       fetchProducts();
     } catch (err) {
       console.error('Error deleting product:', err);
+      const errorMsg = err.response?.data?.message || err.response?.data?.error || err.message || 'Error deleting product';
+      setMessage(typeof errorMsg === 'string' ? errorMsg : 'Error deleting product');
     }
   };
 
@@ -130,6 +138,12 @@ const ProductManagement = () => {
         value={search}
         onChange={handleSearch}
       />
+
+      {message && !showForm && (
+        <div className="form-message" style={{ marginBottom: '10px' }}>
+          {typeof message === 'string' ? message : 'An error occurred'}
+        </div>
+      )}
 
       {loading ? (
         <div>Loading...</div>
@@ -236,7 +250,7 @@ const ProductManagement = () => {
                 <button type="submit" className="save-btn">Save</button>
                 <button type="button" className="cancel-btn" onClick={closeForm}>Cancel</button>
               </div>
-              {message && <div className="form-message">{message}</div>}
+              {message && <div className="form-message">{typeof message === 'string' ? message : 'An error occurred'}</div>}
             </form>
           </div>
         </div>

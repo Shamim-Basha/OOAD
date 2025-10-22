@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import axios from "axios";
 
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+
 function RentalUpdate() {
   const [id, setId] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -9,7 +11,7 @@ function RentalUpdate() {
   const handleUpdate = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`http://localhost:8080/api/rentals/${id}`, { startDate, endDate });
+      await axios.put(`${API_URL}/api/rentals/${id}`, { startDate, endDate });
       alert("Rental updated!");
     } catch (error) {
       console.error(error);
