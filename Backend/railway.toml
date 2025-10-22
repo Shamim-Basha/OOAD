@@ -7,4 +7,3 @@ startCommand = "java -jar target/*.jar"
 
 [env]
 JAVA_TOOL_OPTIONS = "-Xmx512m"
-JDK_VERSION = "24"
