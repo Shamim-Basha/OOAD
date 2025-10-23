@@ -36,5 +36,7 @@ public class Product {
     private double price;
 
     @Lob
+    @Column(length = 1048576)
+    @Size(max = 1048576, message = "Image size must be less than 1MB") 
     private byte[] image;
 }

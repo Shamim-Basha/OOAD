@@ -146,10 +146,28 @@
   padding: 5px;
 }
 
+
+
+.image-preview {
+  margin-top: 10px;
+  text-align: center;
+}
+
+.preview-img {
+  width: 200px;
+  height: 150px;
+  object-fit: cover;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 5px;
+  background-color: #f8f9fa; 
+}
+
 .image-size {
   margin-top: 5px;
   font-size: 12px;
   color: #666;
+  text-align: center;
 }
 
 .form-message {
