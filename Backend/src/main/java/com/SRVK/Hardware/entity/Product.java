@@ -1,6 +1,7 @@
 package com.SRVK.Hardware.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -37,6 +38,6 @@ public class Product {
 
     @Lob
     @Column(length = 1048576)
-    @Size(max = 1048576, message = "Image size must be less than 1MB") 
+    @Size(max = 1048576, message = "Image size must be less than 1MB")
     private byte[] image;
 }
