@@ -22,6 +22,7 @@ const ProductManagement = () => {
   const [editProduct, setEditProduct] = useState(null);
   const [form, setForm] = useState(defaultForm);
   const [message, setMessage] = useState('');
+  const [imagePreview, setImagePreview] = useState(null);
 
   useEffect(() => {
     fetchProducts();
@@ -50,6 +51,7 @@ const ProductManagement = () => {
         ? { ...product, image: null } // Reset image for file input
         : defaultForm
     );
+    setImagePreview(product?.image ? `data:image/jpeg;base64,${product.image}` : null);
     setShowForm(true);
     setMessage('');
   };
@@ -57,13 +59,122 @@ const ProductManagement = () => {
   const closeForm = () => {
     setShowForm(false);
     setEditProduct(null);
+    setImagePreview(null);
     setMessage('');
   };
 
-  const handleFormChange = e => {
+  // Function to compress image
+  const compressImage = (file, maxSizeMB = 1, quality = 0.8) => {
+    return new Promise((resolve, reject) => {
+      // Check if file is an image
+      if (!file.type.startsWith('image/')) {
+        reject(new Error('Please select a valid image file'));
+        return;
+      }
+
+      // Check initial file size (1MB = 1,048,576 bytes)
+      const maxSizeBytes = maxSizeMB * 1024 * 1024;
+      if (file.size <= maxSizeBytes) {
+        resolve(file);
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target.result;
+        
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          
+          // Calculate new dimensions while maintaining aspect ratio
+          const maxDimension = 1200; // Maximum width/height
+          if (width > maxDimension || height > maxDimension) {
+            if (width > height) {
+              height = (height * maxDimension) / width;
+              width = maxDimension;
+            } else {
+              width = (width * maxDimension) / height;
+              height = maxDimension;
+            }
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          // Convert to blob with quality adjustment
+          canvas.toBlob(
+            (blob) => {
+              if (!blob) {
+                reject(new Error('Canvas to Blob conversion failed'));
+                return;
+              }
+              
+              // If still too large, recursively compress with lower quality
+              if (blob.size > maxSizeBytes && quality > 0.1) {
+                compressImage(file, maxSizeMB, quality - 0.1)
+                  .then(resolve)
+                  .catch(reject);
+              } else if (blob.size > maxSizeBytes) {
+                reject(new Error('Image is too large even after compression'));
+              } else {
+                // Create new file with compressed blob
+                const compressedFile = new File([blob], file.name, {
+                  type: 'image/jpeg',
+                  lastModified: Date.now(),
+                });
+                resolve(compressedFile);
+              }
+            },
+            'image/jpeg',
+            quality
+          );
+        };
+        
+        img.onerror = () => reject(new Error('Failed to load image'));
+      };
+      
+      reader.onerror = () => reject(new Error('Failed to read file'));
+    });
+  };
+
+  const handleFormChange = async e => {
     const { name, value, files } = e.target;
+    
     if (name === 'image') {
-      setForm({ ...form, image: files[0] });
+      const file = files[0];
+      if (!file) return;
+
+      setMessage('Compressing image...');
+
+      try {
+        // Validate and compress image
+        const compressedFile = await compressImage(file, 1);
+        
+        // Create preview
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          setImagePreview(event.target.result);
+        };
+        reader.readAsDataURL(compressedFile);
+        
+        setForm({ ...form, image: compressedFile });
+        setMessage('');
+      } catch (error) {
+        console.error('Image processing error:', error);
+        setMessage(error.message);
+        // Clear the file input
+        e.target.value = '';
+        setImagePreview(null);
+        setForm({ ...form, image: null });
+      }
     } else {
       setForm({ ...form, [name]: value });
     }
@@ -73,10 +184,16 @@ const ProductManagement = () => {
     e.preventDefault();
     setMessage('');
 
+    // Final image validation
+    if (form.image && form.image.size > 1 * 1024 * 1024) {
+      setMessage('Image must be less than 1MB');
+      return;
+    }
+
     const formData = new FormData();
     formData.append('name', form.name);
     formData.append('category', form.category);
-    formData.append('subCategory', form.subCategory); // Backend expects camelCase
+    formData.append('subCategory', form.subCategory);
     formData.append('price', form.price);
     formData.append('quantity', form.quantity);
     formData.append('description', form.description);
@@ -233,12 +350,25 @@ const ProductManagement = () => {
                 min="0"
                 required
               />
-              <input
-                name="image"
-                type="file"
-                accept="image/*"
-                onChange={handleFormChange}
-              />
+              
+              {/* Image upload section */}
+              <div className="image-upload-section">
+                <input
+                  name="image"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFormChange}
+                />
+                {imagePreview && (
+                  <div className="image-preview">
+                    <img src={imagePreview} alt="Preview" className="preview-img" />
+                    <div className="image-size">
+                      {form.image ? `Size: ${(form.image.size / 1024 / 1024).toFixed(2)} MB` : ''}
+                    </div>
+                  </div>
+                )}
+              </div>
+              
               <textarea
                 name="description"
                 placeholder="Description"
