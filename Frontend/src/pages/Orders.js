@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import './Orders.css';
 
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+
 const Orders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -22,7 +24,7 @@ const Orders = () => {
 
   const fetchOrders = async (userId) => {
     try {
-      const response = await fetch(`http://localhost:8080/api/orders/${userId}`);
+      const response = await fetch(`${API_URL}/api/orders/${userId}`);
       
       if (response.ok) {
         const data = await response.json();
