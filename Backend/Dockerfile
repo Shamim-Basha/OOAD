@@ -1,37 +1,29 @@
-# =============================
-# 1️⃣ Build Stage
-# =============================
-FROM eclipse-temurin:24-jdk AS build
+# Stage 1: Build the application
+FROM maven:3.9.4-eclipse-temurin-17 AS build
 
+# Set working directory
 WORKDIR /app
 
-# Copy Maven wrapper and project files first
-COPY .mvn/ .mvn/
-COPY mvnw pom.xml ./
+# Copy the backend source code
+COPY . /app/
 
-# ✅ Force permission change explicitly before use
-RUN chmod +x mvnw
+# Build the application (skip tests for faster build)
+RUN mvn clean package -DskipTests
 
-# Pre-fetch dependencies (for cache)
-RUN ./mvnw dependency:go-offline -B || mvn dependency:go-offline -B
+# Stage 2: Create the runtime image
+FROM eclipse-temurin:17-jdk-jammy
 
-# Copy source and build
-COPY src ./src
-RUN ./mvnw clean package -DskipTests || mvn clean package -DskipTests
-
-
-# =============================
-# 2️⃣ Runtime Stage
-# =============================
-FROM eclipse-temurin:24-jre
-
+# Set working directory
 WORKDIR /app
 
-# Copy built JAR from build stage
+# Copy the built JAR from the build stage
 COPY --from=build /app/target/*.jar app.jar
 
-# Expose the default Spring Boot port
+# Expose the port the app runs on
 EXPOSE 8080
 
-# Run the app
+# Set environment variables for production
+ENV SPRING_PROFILES_ACTIVE=prod
+
+# Run the application
 ENTRYPOINT ["java", "-jar", "app.jar"]
