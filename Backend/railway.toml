@@ -1,6 +1,6 @@
 [build]
 builder = "dockerfile"
-dockerfilePath = "./Dockerfile"
+dockerfilePath = "Backend/Dockerfile"
 
 [deploy]
 startCommand = "java -jar app.jar"
