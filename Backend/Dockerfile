@@ -4,11 +4,17 @@ FROM maven:3.9.4-eclipse-temurin-17 AS build
 # Set working directory
 WORKDIR /app
 
-# Copy the backend source code
-COPY . /app/
+# Copy pom.xml first for better caching
+COPY pom.xml ./
+
+# Download dependencies (better for Docker caching)
+RUN mvn dependency:go-offline -B
+
+# Copy source code
+COPY src ./src
 
 # Build the application (skip tests for faster build)
-RUN mvn clean package -DskipTests
+RUN mvn clean package -DskipTests -B
 
 # Stage 2: Create the runtime image
 FROM eclipse-temurin:17-jdk-jammy
