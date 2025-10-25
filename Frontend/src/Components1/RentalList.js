@@ -13,8 +13,7 @@ function RentalList() {
       const response = await axios.get(`${API_URL}/api/rentals`);
       setRentals(response.data);
     } catch (error) {
-      console.error(error);
-      alert("Failed to load rentals");
+      console.error("Failed to load rentals:", error);
     } finally {
       setLoading(false);
     }
@@ -30,8 +29,7 @@ function RentalList() {
       await axios.delete(`${API_URL}/api/rentals/${id}`);
       setRentals(prev => prev.filter(r => r.id !== id));
     } catch (error) {
-      console.error(error);
-      alert("Failed to delete rental");
+      console.error("Failed to delete rental:", error);
     }
   };
 

@@ -12,10 +12,9 @@ function RentalUpdate() {
     e.preventDefault();
     try {
       await axios.put(`${API_URL}/api/rentals/${id}`, { startDate, endDate });
-      alert("Rental updated!");
+      console.log("Rental updated!");
     } catch (error) {
-      console.error(error);
-      alert("Failed to update rental.");
+      console.error("Failed to update rental:", error);
     }
   };
 

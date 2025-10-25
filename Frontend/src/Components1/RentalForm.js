@@ -22,7 +22,7 @@ function RentalForm() {
 
     try {
       const response = await axios.post(`${API_URL}/api/rentals`, rentalData);
-      alert("Rental created! Total cost: " + response.data.totalCost);
+      console.log("Rental created! Total cost: " + response.data.totalCost);
       // Reset form
       setUserId("");
       setToolId("");
@@ -30,8 +30,7 @@ function RentalForm() {
       setEndDate("");
       setQuantity(1);
     } catch (error) {
-      console.error(error);
-      alert("Failed to create rental: " + (error.response?.data?.message || error.message));
+      console.error("Failed to create rental: " + (error.response?.data?.message || error.message));
     }
   };
 
