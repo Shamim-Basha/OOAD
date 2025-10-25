@@ -42,7 +42,7 @@ public class ProductCart {
     @Column(nullable = false)
     private Integer quantity;
 
-    @Column(name = "added_at", nullable = false)
+    @Column(name = "added_at", nullable = false, columnDefinition = "datetime")
     private LocalDateTime addedAt;
 }
 
