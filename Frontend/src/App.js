@@ -13,6 +13,7 @@ import ProductDetail from "./pages/ProductDetail";
 import Register from './pages/Register';
 import Login from './pages/Login';
 import Cart from './pages/Cart';
+import Orders from './pages/Orders';
 import UserProfile from './pages/UserProfile'
 import AdminSidebar from './components/AdminSidebar';
 import AdminDashboard from "./pages/Admin/AdminDashboard"
@@ -46,6 +47,7 @@ function AppContent() {
           <Route path="/rental/:id" element={<ServiceDetail />} />
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/orders" element={<Orders />} />
           <Route path="/profile" element={<UserProfile/>}/>
           
           <Route 
