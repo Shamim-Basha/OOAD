@@ -51,9 +51,6 @@ const ServiceDetail = () => {
           
           // Clear the pending rental
           localStorage.removeItem('pendingRental');
-          
-          // Show a message
-          alert(`Welcome back! Your rental details for ${rentalData.serviceName} have been restored. You can now proceed to add it to cart.`);
         }
       } catch (e) {
         console.error('Error processing pending rental:', e);

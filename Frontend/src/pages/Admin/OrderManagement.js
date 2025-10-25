@@ -36,7 +36,6 @@ const OrderManagement = () => {
       setOrders(response.data);
     } catch (error) {
       console.error('Error fetching orders:', error);
-      alert('Failed to fetch orders');
     }
     setLoading(false);
   };
@@ -48,7 +47,6 @@ const OrderManagement = () => {
       setShowDetailsModal(true);
     } catch (error) {
       console.error('Error fetching order details:', error);
-      alert('Failed to fetch order details');
     }
   };
 
@@ -65,12 +63,10 @@ const OrderManagement = () => {
         deliveryStatus: deliveryStatus,
         deliveryAddress: deliveryAddress
       });
-      alert('Delivery status updated successfully!');
       setShowStatusModal(false);
       fetchOrders();
     } catch (error) {
       console.error('Error updating delivery status:', error);
-      alert('Failed to update delivery status');
     }
   };
 
@@ -81,11 +77,9 @@ const OrderManagement = () => {
 
     try {
       await axios.delete(`${API_URL}/api/orders/admin/${orderId}`);
-      alert('Order deleted successfully!');
       fetchOrders();
     } catch (error) {
       console.error('Error deleting order:', error);
-      alert('Failed to delete order');
     }
   };
 
@@ -117,14 +111,12 @@ const OrderManagement = () => {
 
     try {
       await axios.put(`${API_URL}/api/orders/admin/${orderId}/payment-status`);
-      alert('Payment status updated to PAID!');
       fetchOrders();
       if (showDetailsModal && selectedOrder?.orderId === orderId) {
         handleViewDetails(orderId); // Refresh modal
       }
     } catch (error) {
       console.error('Error updating payment status:', error);
-      alert(error.response?.data || 'Failed to update payment status');
     }
   };
 

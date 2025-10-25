@@ -125,13 +125,11 @@ const Products = () => {
       };
       
       const res = await axios.post(`${API_URL}/api/cart/product/add`, payload);
-      // alert('Item added to cart successfully!');
       console.log('Cart response:', res.data);
       navigate('/cart');
     } catch (error) {
       const message = error?.response?.data?.message || error?.message || 'Failed to add item to cart';
-      alert(message);
-      console.error('Error adding to cart:', error);
+      console.error('Error adding to cart:', error, message);
     }
   };
 
