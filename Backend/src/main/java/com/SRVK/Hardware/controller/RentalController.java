@@ -15,7 +15,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/rentals")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 @Slf4j
 public class RentalController {
 
