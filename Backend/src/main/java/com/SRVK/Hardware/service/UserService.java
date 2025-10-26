@@ -137,4 +137,25 @@ public class UserService {
             throw new RuntimeException(e);
         }
     }
+
+    /**
+     * Change password for a given user after verifying the old password.
+     * @param id user id
+     * @param oldPassword plain text old password provided by client
+     * @param newPassword plain text new password to set
+     */
+    public void changePassword(Long id, String oldPassword, String newPassword) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found with Id: " + id));
+
+        // Verify old password
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+            throw new RuntimeException("Old password is incorrect");
+        }
+
+        // Hash and set new password
+        String hashedNew = passwordEncoder.encode(newPassword);
+        user.setPassword(hashedNew);
+        userRepository.save(user);
+    }
 }

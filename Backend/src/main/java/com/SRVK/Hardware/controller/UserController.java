@@ -3,6 +3,7 @@ package com.SRVK.Hardware.controller;
 import com.SRVK.Hardware.dto.LoginDTO;
 import com.SRVK.Hardware.dto.RegisterDTO;
 import com.SRVK.Hardware.dto.ResponseDTO;
+import com.SRVK.Hardware.dto.ChangePasswordDTO;
 import com.SRVK.Hardware.entity.User;
 import com.SRVK.Hardware.service.UserService;
 import lombok.AllArgsConstructor;
@@ -73,6 +74,18 @@ public class UserController {
             return ResponseEntity.ok("User with Id : " + id + " has been deleted Successfully");
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/{id}/change-password")
+    public ResponseEntity<String> changePassword(@PathVariable Long id, @RequestBody ChangePasswordDTO dto) {
+        try {
+            userService.changePassword(id, dto.getOldPassword(), dto.getNewPassword());
+            return ResponseEntity.ok("Password changed successfully");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to change password");
         }
     }
 }
