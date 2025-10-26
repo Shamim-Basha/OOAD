@@ -142,7 +142,10 @@ const UserProfile = () => {
                 <button type="button" className="cancel-btn" onClick={handleCancel}>Cancel</button>
               </>
             ) : (
-              <button type="button" className="edit-btn" onClick={handleEdit}>Edit Profile</button>
+              <>
+                <button type="button" className="edit-btn" onClick={handleEdit}>Edit Profile</button>
+                <button type="button" className="change-pass-btn" onClick={() => navigate('/change-password')}>Change Password</button>
+              </>
             )}
           </div>
         </div>

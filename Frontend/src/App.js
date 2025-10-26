@@ -15,6 +15,7 @@ import Login from './pages/Login';
 import Cart from './pages/Cart';
 import Orders from './pages/Orders';
 import UserProfile from './pages/UserProfile'
+import ChangePassword from './pages/ChangePassword';
 import AdminSidebar from './components/AdminSidebar';
 import AdminDashboard from "./pages/Admin/AdminDashboard"
 import UserManagement from './pages/Admin/UserManagement';
@@ -22,6 +23,7 @@ import ProductManagement from './pages/Admin/ProductManagement';
 import ToolManagement from './pages/Admin/ToolManagement';
 import RentalManagement from './pages/Admin/RentalManagement';
 import OrderManagement from './pages/Admin/OrderManagement';
+
 
 import Contact from './pages/Contact';
 
@@ -49,7 +51,7 @@ function AppContent() {
           <Route path="/login" element={<Login />} />
           <Route path="/orders" element={<Orders />} />
           <Route path="/profile" element={<UserProfile/>}/>
-          
+          <Route path="/change-password" element={<ChangePassword/>}/>
           <Route 
             path="/admin" 
             element={

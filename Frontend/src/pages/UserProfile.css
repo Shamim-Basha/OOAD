@@ -161,6 +161,30 @@
   gap: 0.5rem;
 }
 
+/* Change Password button style - placed next to Edit Profile */
+.change-pass-btn {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: linear-gradient(90deg, #ff7a18, #af002d);
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(175, 0, 45, 0.18);
+  transition: all 0.18s ease;
+  min-width: 160px;
+}
+
+.change-pass-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(175, 0, 45, 0.22);
+}
+
+.change-pass-btn:active {
+  transform: translateY(0);
+}
+
 .edit-btn {
   background: #0e0e0e;
   color: white;
