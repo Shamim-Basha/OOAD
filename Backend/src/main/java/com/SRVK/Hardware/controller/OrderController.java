@@ -77,14 +77,27 @@ public class OrderController {
                     .build());
             }
             
+            // Determine payment status for COD orders
+            String displayPaymentStatus = order.getPaymentStatus();
+            if ("CASH".equals(order.getPaymentMethod()) && 
+                !"PAID".equals(order.getPaymentStatus())) {
+                displayPaymentStatus = "COD";
+            }
+            
             OrderResponseDTO orderDto = OrderResponseDTO.builder()
                 .orderId(order.getId())
+                .userId(order.getUser().getId())
+                .userName(order.getUser().getUsername())
+                .userEmail(order.getUser().getEmail())
                 .total(order.getTotalAmount())
                 .items(items)
-                .paymentStatus(order.getPaymentStatus())
+                .paymentStatus(displayPaymentStatus)
                 .transactionId(order.getTransactionId())
                 .paymentMethod(order.getPaymentMethod())
                 .orderDate(order.getCreatedAt())
+                .deliveryStatus(order.getDeliveryStatus())
+                .deliveryAddress(order.getDeliveryAddress())
+                .deliveredAt(order.getDeliveredAt())
                 .build();
                 
             dtos.add(orderDto);
