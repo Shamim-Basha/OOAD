@@ -66,7 +66,7 @@ const Navbar = () => {
         <div className="navbar-brand">
           <Link to="/" className="navbar-logo">
             <FaTools className="logo-icon" />
-            <span>Lanka Hardware</span>
+            <span>Eagle Horizon</span>
           </Link>
         </div>
 

@@ -11,7 +11,7 @@ const Footer = () => {
           <div className="footer-section">
             <div className="footer-brand">
               <FaTools className="footer-logo" />
-              <h3>Lanka Hardware</h3>
+              <h3>Eagle Horizon (Pvt) Ltd</h3>
             </div>
             <p>
               Your trusted partner for quality hardware products and professional rental services across Sri Lanka. 
@@ -81,7 +81,7 @@ const Footer = () => {
 
         <div className="footer-bottom">
           <div className="footer-bottom-content">
-            <p>&copy; 2024 Lanka Hardware. All rights reserved.</p>
+            <p>&copy; 2024 Eagle Horizon (Pvt) Ltd. All rights reserved.</p>
             <div className="footer-bottom-links">
               <Link to="/privacy">Privacy Policy</Link>
               <Link to="/terms">Terms of Service</Link>

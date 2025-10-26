@@ -28,7 +28,7 @@ const AdminSidebar = () => {
   return (
     <>
     <aside className="admin-sidebar">
-      <div className="sidebar-logo" onClick={()=> navigate('/')} style={{cursor : 'pointer'}}>Lanka Hardware</div>
+      <div className="sidebar-logo" onClick={()=> navigate('/')} style={{cursor : 'pointer'}}>Eagle Horizon</div>
       <nav className="sidebar-nav">
         <ul>
           <Link to="/admin" className="sidebar-link" style={{ textDecoration: 'none' }}>

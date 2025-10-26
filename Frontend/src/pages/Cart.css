@@ -18,6 +18,14 @@
   letter-spacing: 0.5px;
 }
 
+/* Small branding helper */
+.brand-text {
+  display: inline-block;
+  font-weight: 700;
+  color: #0066cc; /* brand accent */
+  margin-right: 8px;
+}
+
 /* Empty Cart */
 .empty-cart {
   text-align: center;

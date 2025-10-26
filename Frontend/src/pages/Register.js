@@ -122,7 +122,7 @@ const Register = () => {
         <div className="auth-header">
           <FaTools className="auth-logo" />
           <h2>Create Account</h2>
-          <p>Join Lanka Hardware today</p>
+          <p>Join Eagle Horizon (Pvt) Ltd today</p>
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">

@@ -59,7 +59,7 @@ const Home = () => {
       <section className="about-section section">
         <div className="container">
             <div className="about-text">
-              <h2>Why Choose Lanka Hardware?</h2>
+              <h2>Why Choose Eagle Horizon (Pvt) Ltd?</h2>
               <p>With over 15 years of experience serving the Sri Lankan construction industry, we have built a reputation for quality, reliability, and excellent customer service.</p>
               <p>Our extensive inventory includes everything from basic hand tools to advanced power equipment, and we offer both product sales and rental services.</p>
               <div className="about-stats">

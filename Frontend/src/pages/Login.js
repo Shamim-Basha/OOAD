@@ -93,7 +93,7 @@ const Login = () => {
         <div className="auth-header">
           <FaTools className="auth-logo" />
           <h2>Welcome Back</h2>
-          <p>Sign in to your Lanka Hardware account</p>
+          <p>Sign in to your Eagle Horizon (Pvt) Ltd account</p>
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">
