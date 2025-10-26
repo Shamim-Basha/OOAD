@@ -10,7 +10,7 @@ const Home = () => {
   const navigate = useNavigate();
 
   const features = [
-    { icon: <FaTruck />, title: "Free Delivery", description: "Free delivery across Colombo and surrounding areas" },
+    { icon: <FaTruck />, title: "Free Delivery", description: "Free delivery across Kegalle and surrounding areas" },
     { icon: <FaShieldAlt />, title: "Quality Guarantee", description: "All products come with manufacturer warranty" },
     { icon: <FaTools />, title: "Expert Support", description: "Professional advice from our experienced team" },
     { icon: <FaStar />, title: "Best Prices", description: "Competitive prices for quality hardware products" }

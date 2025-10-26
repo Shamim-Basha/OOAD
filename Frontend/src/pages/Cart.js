@@ -511,7 +511,7 @@ const Cart = () => {
 
             <div className="delivery-info">
               <h3>Delivery Information</h3>
-              <p>Free delivery within Colombo and surrounding areas</p>
+              <p>Free delivery within Kegalle and surrounding areas</p>
               <p>Estimated delivery: 2-3 business days</p>
             </div>
 

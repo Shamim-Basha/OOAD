@@ -122,7 +122,7 @@ const ServiceDetail = () => {
               'Category': t.category || 'General',
               'Condition': 'Industrial grade',
               'Support': '24/7 phone support',
-              'Delivery': 'Available in Colombo'
+              'Delivery': 'Available in Kegalle'
             };
           })();
           const mapped = {
@@ -564,7 +564,7 @@ const ServiceDetail = () => {
             <div className="service-features">
               <div className="feature">
                 <FaTruck />
-                <span>Free delivery in Colombo</span>
+                <span>Free delivery in Kegalle</span>
               </div>
               <div className="feature">
                 <FaShieldAlt />
@@ -645,7 +645,7 @@ const ServiceDetail = () => {
                 </ul>
                 <div className="additional-info">
                   <h4>Additional Information</h4>
-                  <p>All rentals include comprehensive insurance coverage and 24/7 technical support. Delivery and pickup services are available within Colombo and surrounding areas.</p>
+                  <p>All rentals include comprehensive insurance coverage and 24/7 technical support. Delivery and pickup services are available within Kegalle and surrounding areas.</p>
                 </div>
               </div>
             )}

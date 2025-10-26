@@ -180,7 +180,7 @@ const ProductDetail = () => {
             <div className="product-features">
               <div className="feature">
                 <FaTruck />
-                <span>Free delivery in Colombo</span>
+                <span>Free delivery in Kegalle</span>
               </div>
               <div className="feature">
                 <FaShieldAlt />

@@ -56,7 +56,7 @@ const Footer = () => {
             <div className="contact-info">
               <div className="contact-item">
                 <FaMapMarkerAlt />
-                <span>123 Main Street, Colombo 03, Sri Lanka</span>
+                <span>458/D, Kandy road, Yattogoda, Kandy Road, A1, Sri Lanka</span>
               </div>
               <div className="contact-item">
                 <FaPhone />

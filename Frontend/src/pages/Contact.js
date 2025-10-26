@@ -65,12 +65,6 @@ const Contact = () => {
     }
   ];
 
-  const socialLinks = [
-    { icon: <FaFacebook />, url: "https://facebook.com", label: "Facebook" },
-    { icon: <FaInstagram />, url: "https://instagram.com", label: "Instagram" },
-    { icon: <FaWhatsapp />, url: "https://wa.me/94711234567", label: "WhatsApp" }
-  ];
-
   return (
     <div className="contact-page">
       <div className="container">
@@ -99,24 +93,6 @@ const Contact = () => {
                   </div>
                 </div>
               ))}
-            </div>
-
-            <div className="social-links-section">
-              <h3>Follow Us</h3>
-              <div className="social-links">
-                {socialLinks.map((social, index) => (
-                  <a
-                    key={index}
-                    href={social.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="social-link"
-                  >
-                    {social.icon}
-                    <span>{social.label}</span>
-                  </a>
-                ))}
-              </div>
             </div>
           </div>
 
@@ -219,7 +195,7 @@ const Contact = () => {
           <div className="store-info">
             <div className="store-detail">
               <h3>Store Location</h3>
-              <p>Located in the heart of Colombo, our store is easily accessible by public transport and has ample parking space.</p>
+              <p>Located in the heart of Kegalle, our store is easily accessible by public transport and has ample parking space.</p>
             </div>
             <div className="store-detail">
               <h3>Parking</h3>
@@ -238,7 +214,7 @@ const Contact = () => {
           <div className="faq-grid">
             <div className="faq-item">
               <h3>Do you offer delivery services?</h3>
-              <p>Yes, we offer free delivery within Colombo and surrounding areas. For other locations, delivery charges apply based on distance.</p>
+              <p>Yes, we offer free delivery within Kegalle and surrounding areas. For other locations, delivery charges apply based on distance.</p>
             </div>
             <div className="faq-item">
               <h3>What payment methods do you accept?</h3>
